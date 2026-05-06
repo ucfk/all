@@ -1,0 +1,43 @@
+SELECT *
+FROM "room_sensor1"
+WHERE time >= now() - interval '1 minute'
+AND (
+  "DHT22-Tempp" IS NOT NULL OR
+  "ESP32-Tempp" IS NOT NULL OR
+  "humidity" IS NOT NULL OR
+  "rotary_angle" IS NOT NULL
+)
+AND "ESP32-MAC-Address" = 'E0:8C:FE:5D:CA:F8'
+AND "ESP32-Wifi-Name" = 'RUTRADA'
+
+
+from(bucket: "kit")
+  |> range(start: -30s)
+  |> filter(fn: (r) => r["_measurement"] == "room_sensor1")
+  |> filter(fn: (r) => r["ESP32-MAC-Address"] == "E0:8C:FE:5D:CA:F8")
+  |> filter(fn: (r) => r["_field"] == "ESP32-Tempp" or 
+                       r["_field"] == "DHT22-Tempp" or 
+                       r["_field"] == "humidity" or 
+                       r["_field"] == "rotary_angle")
+  |> pivot(
+      rowKey: ["_time"],
+      columnKey: ["_field"],
+      valueColumn: "_value"
+  )
+  |> keep(columns: [
+      "_time",
+      "ESP32-MAC-Address",
+      "ESP32-Wifi-Name",
+      "ESP32-Tempp",
+      "DHT22-Tempp",
+      "humidity",
+      "rotary_angle"
+  ])
+  |> rename(columns: {
+  "ESP32-MAC-Address": "1MAC_ID",
+  "ESP32-Wifi-Name": "2WIFI_NAME",
+  "ESP32-Tempp": "3_ESP32_TEMP",
+  "DHT22-Tempp": "4_DHT22_TEMP",
+  "humidity": "5_HUMID",
+  "rotary_angle": "6_ANGLE"
+})

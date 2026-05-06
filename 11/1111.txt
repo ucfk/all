@@ -1,0 +1,53 @@
+#include <ezButton.h> // the library to use for SW pin
+#define CLK_PIN 19// ESP32 pin GPIO25 connected to the rotary encoder's CLK pin
+#define DT_PIN 18// ESP32 pin GPIO26 connected to the rotary encoder's DT pin
+#define SW_PIN 5 // ESP32 pin GPIO27 connected to the rotary encoder's SW pin
+#define DIRECTION_CW 0 // clockwise direction
+#define DIRECTION_CCW 1 // counter-clockwise direction
+int counter = 0;
+int direction = DIRECTION_CW;
+int CLK_state;
+int prev_CLK_state;
+ezButton button(SW_PIN); // create ezButton object that attach to pin 7;
+void setup() {
+  Serial.begin(115200);
+  // configure encoder pins as inputs
+  pinMode(CLK_PIN, INPUT);
+  pinMode(DT_PIN, INPUT);
+  button.setDebounceTime(50); // set debounce time to 50 milliseconds
+  // read the initial state of the rotary encoder's CLK pin
+  prev_CLK_state = digitalRead(CLK_PIN);
+  Serial.println("Digital Rotary Encoder Start!");
+}
+void loop() {
+  button.loop();
+  CLK_state = digitalRead(CLK_PIN);
+  if (CLK_state != prev_CLK_state && CLK_state == HIGH) {
+    if (digitalRead(DT_PIN) == HIGH) {
+      if (counter > 0) {
+        counter = counter - 36 ;
+      } else if (counter == 0) {
+        counter = 360 ;
+      }
+      direction = DIRECTION_CCW;
+    } else {
+      if (counter < 360) {
+        counter = counter + 36 ;
+      } else if (counter == 360) {
+        counter = 0 ;
+      }
+      direction = DIRECTION_CW;
+    }
+    Serial.print("The Degree : ");
+    if (direction == DIRECTION_CW)
+      Serial.print("Incress : ");
+    else
+      Serial.print("Decress : ");
+    Serial.println(counter);
+  }
+  prev_CLK_state = CLK_state;
+  if (button.isPressed()) {
+    counter = 0 ;
+    Serial.println("The Degree is reset");
+  }
+}

@@ -1,0 +1,123 @@
+#include "DHTesp.h" 
+#include <WiFi.h> 
+#include <time.h> 
+#include <InfluxDbClient.h>   // https://github.com/tobiasschuerg/InfluxDB-Client-for-Arduino 
+#include <InfluxDbCloud.h> 
+uint64_t chipid; 
+#define Pin_DHT22 15 // D15 
+
+DHTesp dht; 
+
+const char* ssid = "RUTRADA"; 
+const char* password = "0894280008"; 
+
+#define HOSTNAME "ESP32 Temperature Sensor" 
+#define LOCATION "1000 chem" 
+
+// InfluxDB server URL
+#define INFLUXDB_TOKEN "AeqOb53J-ZztEIZdrpei5b3FCfPvltqjzBEofYkF3zarZUKdnxAFpgBqd0rVIGJo2JeFLCroUwuznAXesjoifQ==" 
+#define INFLUXDB_URL "https://us-east-1-1.aws.cloud2.influxdata.com" 
+#define INFLUXDB_ORG "maxverst73@gmail.com" 
+#define INFLUXDB_BUCKET "kit" 
+String getMacAddress() {
+  uint64_t chipid = ESP.getEfuseMac();
+  char macStr[18];
+  // จัดรูปแบบให้เป็น AA:BB:CC:DD:EE:FF
+  snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
+           (uint8_t)(chipid >> 0), (uint8_t)(chipid >> 8),
+           (uint8_t)(chipid >> 16), (uint8_t)(chipid >> 24),
+           (uint8_t)(chipid >> 32), (uint8_t)(chipid >> 40));
+  return String(macStr);
+}
+int number = 0;
+
+// InfluxDB client instance with preconfigured InfluxCloud certificate 
+InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN, InfluxDbCloud2CACert); 
+Point sensor("room_sensor1"); 
+
+void sendData(String macID,const char* wifi, float temp, float dhttemp, float humid, float angle) { 
+
+    Serial.print("ESP32 MAC Address: "); 
+    Serial.print(macID); 
+    Serial.print("ESP32 Wifi Name: "); 
+    Serial.print(wifi); 
+    Serial.print("ESP32 Tempp: "); 
+    Serial.print(temp); 
+    Serial.print(" *C\t"); 
+    Serial.print("DHT22.Tempp: "); 
+    Serial.print(dhttemp); 
+    Serial.print(" *C\t"); 
+    Serial.print("Humidity: "); 
+    Serial.print(humid); 
+    Serial.print(" %\t"); 
+    Serial.print("Rotary Angle: "); 
+    Serial.print(angle); 
+    Serial.println(" deg"); 
+
+    // Store measured value into point 
+    sensor.clearFields();
+    sensor.clearTags();
+    // Add data 
+
+    sensor.addTag("ESP32-MAC-Address", macID); 
+    sensor.addTag("ESP32-Wifi-Name", wifi); 
+
+    sensor.addField("MAC_ID", macID.c_str()); 
+    sensor.addField("WIFI_NAME", wifi);
+
+    sensor.addField("ESP32-Tempp", temp); 
+    sensor.addField("DHT22-Tempp", dhttemp); 
+    sensor.addField("humidity", humid); 
+    sensor.addField("rotary_angle", angle); 
+
+    // Print what we are exactly writing 
+    Serial.print("Writing: "); 
+    Serial.println(client.pointToLineProtocol(sensor)); 
+
+    // Write point 
+    if (!client.writePoint(sensor)) { 
+        Serial.print("InfluxDB write failed: "); 
+        Serial.println(client.getLastErrorMessage()); 
+    } 
+} 
+
+void setup() { 
+    Serial.begin(115200); 
+    randomSeed(analogRead(0)); // Initialize random seed
+    dht.setup(Pin_DHT22, DHTesp::DHT22); 
+    delay(10); 
+    Serial.println(); 
+    Serial.print("Connecting to "); 
+    Serial.println(ssid); 
+
+    WiFi.begin(ssid, password); 
+    while (WiFi.status() != WL_CONNECTED) { 
+        delay(500); 
+        Serial.print("."); 
+    } 
+
+    Serial.println(""); 
+    Serial.println("WiFi connected"); 
+    Serial.println("IP address: "); 
+    Serial.println(WiFi.localIP()); 
+
+    if (client.validateConnection()) { 
+        Serial.print("Connected to InfluxDB: "); 
+        Serial.println(client.getServerUrl()); 
+    } else { 
+        Serial.print("InfluxDB connection failed: "); 
+        Serial.println(client.getLastErrorMessage()); 
+    }
+} 
+
+void loop() {  
+    String macID = getMacAddress();
+    float DHT22_Tempp = random(1000, 3000) / 100.0; 
+    float DHT22_Humid = random(4000, 6000) / 100.0; 
+    float esp32tempp = random(7000, 9000) / 100.0; 
+    float Rotary_Angle = random(10000, 11000) / 100.0; 
+
+    sendData(macID,ssid,esp32tempp,DHT22_Tempp, DHT22_Humid, Rotary_Angle); 
+    number++; 
+    delay(4000); 
+}

@@ -1,0 +1,162 @@
+#include "DHTesp.h" 
+#include <WiFi.h> 
+#include <time.h> 
+#include <InfluxDbClient.h>   // https://github.com/tobiasschuerg/InfluxDB-Client-for-Arduino 
+#include <InfluxDbCloud.h> 
+uint64_t chipid; 
+#define Pin_DHT22 15 // D15 
+DHTesp dht; 
+unsigned long lastSendTime = 0; // ตัวแปรเก็บเวลาล่าสุดที่ส่งข้อมูล
+const unsigned long sendInterval = 4000; // ตั้งเวลาส่งข้อมูลทุก 4 วินาที
+#include <ezButton.h> // the library to use for SW pin
+#define CLK_PIN 19// ESP32 pin GPIO25 connected to the rotary encoder's CLK pin
+#define DT_PIN 18// ESP32 pin GPIO26 connected to the rotary encoder's DT pin
+#define SW_PIN 5 // ESP32 pin GPIO27 connected to the rotary encoder's SW pin
+#define DIRECTION_CW 0 // clockwise direction
+#define DIRECTION_CCW 1 // counter-clockwise direction
+int counter = 0;
+int direction = DIRECTION_CW;
+int CLK_state;
+int prev_CLK_state;
+ezButton button(SW_PIN);
+
+const char* ssid = "RUTRADA"; 
+const char* password = "0894280008"; 
+
+#define HOSTNAME "ESP32 Temperature Sensor" 
+#define LOCATION "1000 chem" 
+#define INFLUXDB_TOKEN "AeqOb53J-ZztEIZdrpei5b3FCfPvltqjzBEofYkF3zarZUKdnxAFpgBqd0rVIGJo2JeFLCroUwuznAXesjoifQ==" 
+#define INFLUXDB_URL "https://us-east-1-1.aws.cloud2.influxdata.com" 
+#define INFLUXDB_ORG "maxverst73@gmail.com" 
+#define INFLUXDB_BUCKET "kit" 
+String getMacAddress() {
+  uint64_t chipid = ESP.getEfuseMac();
+  char macStr[18];
+  // จัดรูปแบบให้เป็น AA:BB:CC:DD:EE:FF
+  snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
+           (uint8_t)(chipid >> 0), (uint8_t)(chipid >> 8),
+           (uint8_t)(chipid >> 16), (uint8_t)(chipid >> 24),
+           (uint8_t)(chipid >> 32), (uint8_t)(chipid >> 40));
+  return String(macStr);
+}
+int number = 0;
+
+// InfluxDB client instance with preconfigured InfluxCloud certificate 
+InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN, InfluxDbCloud2CACert); 
+Point sensor("room_sensor1"); 
+
+void sendData(String macID,const char* wifi, float temp, float dhttemp, float humid,float angle) { 
+
+    Serial.print("ESP32 MAC Address: "); 
+    Serial.print(macID); 
+    Serial.print("ESP32 Wifi Name: "); 
+    Serial.print(wifi); 
+    Serial.print("ESP32 Tempp: "); 
+    Serial.print(temp); 
+    Serial.print(" *C\t"); 
+    Serial.print("DHT22.Tempp: "); 
+    Serial.print(dhttemp); 
+    Serial.print(" *C\t"); 
+    Serial.print("Humidity: "); 
+    Serial.print(humid); 
+    Serial.print(" %\t"); 
+    Serial.print("Rotary Angle: "); 
+    Serial.print(angle); 
+    Serial.println(" deg"); 
+
+    sensor.clearFields();
+    sensor.clearTags();
+
+    sensor.addTag("ESP32-MAC-Address", macID); 
+    sensor.addTag("ESP32-Wifi-Name", wifi); 
+    sensor.addField("MAC_ID", macID.c_str()); 
+    sensor.addField("WIFI_NAME", wifi);
+    sensor.addField("ESP32-Tempp", temp); 
+    sensor.addField("DHT22-Tempp", dhttemp); 
+    sensor.addField("humidity", humid); 
+    sensor.addField("rotary_angle", angle); 
+    Serial.print("Writing: "); 
+    Serial.println(client.pointToLineProtocol(sensor)); 
+
+    if (!client.writePoint(sensor)) { 
+        Serial.print("InfluxDB write failed: "); 
+        Serial.println(client.getLastErrorMessage()); 
+    } 
+} 
+
+void setup() { 
+    Serial.begin(115200); 
+    pinMode(CLK_PIN, INPUT);
+    pinMode(DT_PIN, INPUT);
+    button.setDebounceTime(50);
+    prev_CLK_state = digitalRead(CLK_PIN);
+    randomSeed(analogRead(0)); // Initialize random seed
+    dht.setup(Pin_DHT22, DHTesp::DHT22); 
+    delay(10); 
+    Serial.println(); 
+    Serial.print("Connecting to "); 
+    Serial.println(ssid); 
+
+    WiFi.begin(ssid, password); 
+    while (WiFi.status() != WL_CONNECTED) { 
+        delay(500); 
+        Serial.print("."); 
+    } 
+
+    Serial.println(""); 
+    Serial.println("WiFi connected"); 
+    Serial.println("IP address: "); 
+    Serial.println(WiFi.localIP()); 
+
+    if (client.validateConnection()) { 
+        Serial.print("Connected to InfluxDB: "); 
+        Serial.println(client.getServerUrl()); 
+    } else { 
+        Serial.print("InfluxDB connection failed: "); 
+        Serial.println(client.getLastErrorMessage()); 
+    }
+} 
+
+void loop() {  
+    String macID = getMacAddress();
+    button.loop();
+    CLK_state = digitalRead(CLK_PIN);
+    if (CLK_state != prev_CLK_state && CLK_state == HIGH) {
+        if (digitalRead(DT_PIN) == HIGH) {
+        if (counter > 0) {
+            counter = counter - 36 ;
+        } else if (counter == 0) {
+            counter = 360 ;
+        }
+        direction = DIRECTION_CCW;
+        } else {
+        if (counter < 360) {
+            counter = counter + 36 ;
+        } else if (counter == 360) {
+            counter = 0 ;
+        }
+        direction = DIRECTION_CW;
+        }
+        Serial.print("The Degree : ");
+        if (direction == DIRECTION_CW)
+        Serial.print("Incress : ");
+        else
+        Serial.print("Decress : ");
+        Serial.println(counter);
+    }
+    prev_CLK_state = CLK_state;
+    if (button.isPressed()) {
+        counter = 0 ;
+        Serial.println("The Degree is reset");
+    }
+    if (millis() - lastSendTime >= sendInterval) {
+        lastSendTime = millis(); // อัปเดตเวลาล่าสุด
+
+    float DHT22_Tempp = dht.getTemperature();
+    float DHT22_Humid = dht.getHumidity();
+    float esp32tempp = temperatureRead();
+    float angle=counter;
+        sendData(macID,ssid,esp32tempp,DHT22_Tempp, DHT22_Humid,angle); 
+    }
+    number++; 
+}
