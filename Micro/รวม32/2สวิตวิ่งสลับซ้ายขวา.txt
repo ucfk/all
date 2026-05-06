@@ -1,0 +1,28 @@
+• เขียนโปรแกรมไฟวิ่งที่ 8 LED ที่ต่อกับ ESP32 โดยควบคุมไฟวิ่งจากการกดสวิตช์ Sw1 และ Sw2 
+o หากกดสวิตช์ Sw1 (แล้วปล่อยมือ)  ให้ LED เป็นไฟวิ่งจากซ้ายไปขวา 
+o หากกดสวิตช์ Sw2 (แล้วปล่อยมือ)  ให้ LED เป็นไฟวิ่งจากขวาไปซ้าย 
+ 
+
+          
+int pushButton = 15;  
+int pushButton2 = 13;  
+int led[] = { 23, 22, 21, 19, 18, 5, 4, 2 }; 
+volatile int lastled=0; 
+volatile int Do=0; 
+void onfromR(int last){ 
+    if(last==0){last=7;} 
+   for(int i=last;i>=0;i--){ 
+   digitalWrite(led[i], HIGH); 
+   delay(200);  
+   digitalWrite(led[i], LOW); 
+   if(digitalRead(pushButton)==0){ 
+    Do=1; 
+    lastled=i; 
+    break; 
+    }else if(i==0){lastled=7;} 
+   }  
+} 
+void onfromL(int last){ 
+   for(int i=last;i<8;i++){ 
+   digitalWrite(led[i], HIGH); 
+   delay(200);

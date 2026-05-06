@@ -1,0 +1,101 @@
+#include <WiFi.h> 
+#include <HTTPClient.h> 
+#include <WiFiMulti.h>  // ใช้สําหรับเชือมต่อหลาย WiFi (ตัวเลือก) 
+#include <WiFiClientSecure.h>
+WiFiClientSecure client;
+HTTPClient http;
+#define sw1 15
+#define sw2 13
+#include <Adafruit_AHTX0.h> 
+Adafruit_AHTX0 aht;
+const char* ssid = "Cgrs"; // ชือ WiFi 
+const char* password = "@@@@@@@@"; // รหัสผ่าน WiFi 
+ 
+// ตังค่าตัวแปร Telegram 
+String telegramToken = "8659756474:AAGk3ZO2ZQnr65xX1cFaSyJEJmv0hFicv9Y"; // Telegram Bot Token 
+String chatID = "6545843941"; // Chat ID 
+ 
+void setup() { 
+  Serial.begin(115200); 
+  aht.begin();
+  delay(10); 
+  Serial.println("Connec ng to WiFi..."); 
+  WiFi.begin(ssid, password); 
+ 
+  while (WiFi.status() != WL_CONNECTED) { 
+    delay(1000); 
+    Serial.print("."); 
+  } 
+  Serial.println(""); 
+  Serial.println("WiFi connected!"); 
+  Serial.print("IP Address: "); 
+  Serial.println(WiFi.localIP()); 
+  pinMode(sw1, INPUT_PULLUP); 
+  pinMode(sw2, INPUT_PULLUP); 
+  // ทดสอบการส่งข้อความ 
+  sendHttpRequest("ทดสอบการแจ้งเตือน Telegram"); // เรียกใช้ฟังก์ชันส่งข้อความ 
+} 
+char dataString[100]; // ประกาศตัวแปรจองพื้นที่ไว้ 100 ตัวอักษร
+void loop() { 
+  sensors_event_t humidity, temp;
+  aht.getEvent(&humidity, &temp);
+  float h=humidity.relative_humidity;
+  float t=temp.temperature;
+  if (digitalRead(sw2) == LOW) { 
+    sprintf (dataString, "now Humidity = %0.2f %%", h); 
+    sendHttpRequest(dataString); 
+    delay(1000); 
+  } 
+  if (digitalRead(sw1) == LOW) { 
+    sprintf (dataString, "now Temperature = %0.2f 'C",t); 
+    sendHttpRequest(dataString); 
+    delay(1000); 
+  } 
+  if(26<t || t<22){
+    sprintf (dataString, "now Temperature = %0.2f 'C\nnow Humidity = %0.2f %%",t,h); 
+    sendHttpRequest(dataString); 
+    delay(5000); 
+  }else if(60<h || h<40){
+    sprintf (dataString, "now Temperature = %0.2f 'C\nnow Humidity = %0.2f %%",t,h); 
+    sendHttpRequest(dataString); 
+    delay(5000); 
+  }
+  delay(30000);
+  }
+ 
+// ฟังก์ชันส่ง HTTP Request โดยรับพารามิเตอร์เป็นข้อความ 
+void sendHttpRequest(String message) {
+  client.setInsecure();
+  String url = "https://api.telegram.org/bot" + telegramToken 
+               + "/sendMessage?chat_id=" + chatID 
+               + "&text=" + urlEncode(message);
+  
+  http.begin(client, url);
+  int httpCode = http.GET();
+  if (httpCode > 0) {
+    Serial.println(http.getString());
+  } else {
+    Serial.printf("Error: %s\n", http.errorToString(httpCode).c_str());
+  }
+  http.end();
+}
+ 
+ 
+// ฟังก์ชันสําหรับแปลงข้อความเป็น URL Encoding (สําหรับรองรับการใช้หลายคํา) 
+String urlEncode(String message) { 
+  String encoded = ""; 
+  char c; 
+  for (int i = 0; i < message.length(); i++) { 
+    c = message[i]; 
+    if (c == ' ') { 
+      encoded += "%20";   // เปลียนช่องว่างเป็น %20 
+    } else if (c == '&') { 
+      encoded += "%26";   // เปลียนเครืองหมาย & เป็น %26 
+    } else if (c == '=') { 
+      encoded += "%3D";   // เปลียนเครืองหมาย = เป็น %3D 
+    } else { 
+      encoded += c;   // ตัวอักษรอืนๆ ไม่ต้องแปลง 
+    } 
+  } 
+  return encoded; 
+} 

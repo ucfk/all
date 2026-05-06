@@ -1,0 +1,41 @@
+	ORG 	0000H
+	
+	MOV	A,#00
+	MOV	DPTR,#1234H
+	
+	clr	C
+	
+	MOV	A,B
+	CPL	A
+	MOV	B,A
+	
+	MOV	A , #00
+	
+	MOV	C,B.7
+	ADDC	A,#00
+	
+	MOV	C,B.6
+	ADDC	A,#00
+	
+	MOV	C,B.5
+	ADDC	A,#00
+	
+	MOV	C,B.4
+	ADDC	A,#00
+	
+	MOV	C,B.3
+	ADDC	A,#00
+	
+	MOV	C,B.2
+	ADDC	A,#00
+	
+	MOV	C,B.1
+	ADDC	A,#00
+	
+	MOV	C,B.0
+	ADDC	A,#00
+	
+	MOV	R7,A
+	
+	JMP	$
+	END

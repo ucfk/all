@@ -1,0 +1,131 @@
+T2CON  EQU 0C8H
+RCAP2L EQU 0CAH
+RCAP2H EQU 0CBH
+TH2    EQU 0CDH
+TL2    EQU 0CCH
+
+	ORG 0000H
+	JMP 0100H
+	ORG 0100H
+	MOV SP,#3FH
+	CLR EA
+	MOV SCON,#01010000B
+	MOV RCAP2H,#0FFH
+	MOV RCAP2L,#0DCH
+	MOV TH2,#0FFH
+	MOV TL2,#0DCH
+	MOV T2CON,#00110100B
+	MOV R0,#00H
+	MOV R1,#00H
+	
+	CLR P3.7		
+	SETB P3.2
+	
+	MOV A,R0
+	CALL Display
+
+Main_Loop:
+	CLR RI
+	JNB RI,$
+	MOV A,SBUF
+	CJNE A,#'+',_CHK_MINUS
+	INC R0
+	MOV A,R0
+	CJNE A,#10H,$+3
+	JNC _RESET_MAX
+	MOV A,R0
+	CALL Display
+	JMP Main_Loop
+_RESET_MAX:
+	MOV R0,#0FH
+	MOV A,#0FH
+	CALL Display
+	JMP Main_Loop
+_CHK_MINUS:
+	CJNE A,#'-',_CHK_ZERO
+	DEC R0
+	MOV A,R0
+	CJNE A,#0FFH,$+3
+	JZ _RESET_MIN
+	MOV A,R0
+	CALL Display
+	JMP Main_Loop
+_RESET_MIN:
+	MOV R0,#00H
+	MOV A,#00H
+	CALL Display
+	JMP Main_Loop
+_CHK_ZERO:
+	CJNE A,#'0',_CHK_1to9
+	MOV A,R0
+	CALL Display
+	JMP Main_Loop
+
+_CHK_1to9:
+	CLR C
+	SUBB A,#'1'
+	JC _IS_OTHER		; < '1'
+
+	CLR C
+	MOV A,SBUF
+	SUBB A,#'9'+1
+	JNC _IS_OTHER		; > '9'
+
+	MOV A,SBUF
+	CLR C
+	SUBB A,#'0'
+	MOV R1,A
+
+	MOV A,#10H
+	CALL Display
+
+Blink_Loop:
+	MOV A,R1
+	JZ Blink_Done
+	SETB P3.7		
+	CALL Delay
+	CLR P3.7		
+	CALL Delay
+	DEC R1
+	JMP Blink_Loop
+
+Blink_Done:
+	CLR P3.7		
+	MOV A,R0
+	CALL Display
+	JMP Main_Loop
+
+	
+_IS_OTHER:
+	MOV A,#10H
+	CALL Display
+	CLR P3.2
+	JMP Main_Loop
+
+; ---------------------------
+Display:
+	MOV DPTR,#Seg_Tab
+	MOVC A,@A+DPTR
+	
+	CPL	A
+	
+	MOV P2,A
+	CLR P1.4
+	CLR P1.5
+	RET
+
+; ---------------------------
+Delay:
+	MOV R6,#0FFH
+D1:	MOV R5,#0FFH
+D2:	DJNZ R5,D2
+	DJNZ R6,D1
+	RET
+
+; ---------------------------
+Seg_Tab:
+	DB 3FH,06H,5BH,4FH,66H,6DH,7DH,07H	; 0-7
+	DB 7FH,6FH,77H,7CH,39H,5EH,79H,71H	; 8-F
+	DB 40H					; 10H = '-'
+
+	END

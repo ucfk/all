@@ -1,0 +1,16 @@
+uint64_t chipid; 
+void setup() { 
+Serial.begin(115200); 
+} 
+void loop() { 
+chipid = ESP.getEfuseMac();
+Serial.printf("ESP32 MAC ID = "); 
+Serial.printf("%02X:", (uint8_t)(chipid >> 0)); 
+Serial.printf("%02X:", (uint8_t)(chipid >> 8));- 
+Serial.printf("%02X:", (uint8_t)(chipid >> 16)); 
+Serial.printf("%02X:", (uint8_t)(chipid >> 24)); 
+Serial.printf("%02X:", (uint8_t)(chipid >> 32)); 
+Serial.printf("%02X", (uint8_t)(chipid >> 40)); 
+Serial.println(); 
+delay(3000); 
+} 

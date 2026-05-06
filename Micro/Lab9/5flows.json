@@ -1,0 +1,144 @@
+[
+    {
+        "id": "3803eb7eca3465d8",
+        "type": "mqtt in",
+        "z": "10874d72971f3fe2",
+        "name": "",
+        "topic": "ABCD",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "8966f18cac25b726",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 470,
+        "y": 280,
+        "wires": [
+            [
+                "f0e81f1fd631269d",
+                "f4b210cad851157f"
+            ]
+        ]
+    },
+    {
+        "id": "f4b210cad851157f",
+        "type": "function",
+        "z": "10874d72971f3fe2",
+        "name": "function 1",
+        "func": "let text = msg.payload;\n\nlet temp = text.match(/Tempp = ([\\d.]+)/);\n\nif(temp){\n    let t = parseFloat(temp[1]);\n\n    if(t > 20){\n        msg.payload = {\n            chatId: \"8249332907\",\n            type: \"message\",\n            content: \"🔥 แจ้งเตือน อุณหภูมิสูง>20 = \" + t + \" °C\"\n        };\n        return msg;\n    }\n}\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 200,
+        "wires": [
+            [
+                "833b128e4c8d2a38"
+            ]
+        ]
+    },
+    {
+        "id": "f0e81f1fd631269d",
+        "type": "function",
+        "z": "10874d72971f3fe2",
+        "name": "function 2",
+        "func": "let text = msg.payload;\n\nlet hum = text.match(/Humid = ([\\d.]+)/);\n\nif(hum){\n    let h = parseFloat(hum[1]);\n\n    if(h > 40){\n        msg.payload = {\n            chatId: \"8249332907\",\n            type: \"message\",\n            content: \"💧 แจ้งเตือน ความชื้นสูง>40 = \" + h + \" %\"\n        };\n        return msg;\n    }\n}\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 360,
+        "wires": [
+            [
+                "833b128e4c8d2a38"
+            ]
+        ]
+    },
+    {
+        "id": "833b128e4c8d2a38",
+        "type": "telegram sender",
+        "z": "10874d72971f3fe2",
+        "name": "",
+        "bot": "12ee1c7ec1d30fd5",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1210,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8966f18cac25b726",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "broker.emqx.io",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "12ee1c7ec1d30fd5",
+        "type": "telegram bot",
+        "botname": "Tinnqpat",
+        "usernames": "",
+        "chatids": "",
+        "baseapiurl": "",
+        "testenvironment": false,
+        "updatemode": "polling",
+        "pollinterval": 300,
+        "usesocks": false,
+        "sockshost": "",
+        "socksprotocol": "socks5",
+        "socksport": 6667,
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbothost": "0.0.0.0",
+        "localbotport": 8443,
+        "publicbotport": 8443,
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": false
+    },
+    {
+        "id": "e1a44f645734631b",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-telegrambot": "17.1.3"
+        }
+    }
+]

@@ -1,0 +1,172 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	C:\Users\chisa\OneDrive\Desktop\labMicro\lab9\3\Rx.ASM
+	Object File:	C:\Users\chisa\OneDrive\Desktop\labMicro\lab9\3\Rx.hex
+	List File:	C:\Users\chisa\OneDrive\Desktop\labMicro\lab9\3\Rx.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:		N      0000	ORG 0000H
+    2:	  0000	80 2E		        SJMP MAIN
+    3:
+    4:		N      0030	        ORG 0030H
+    5:	  0030			MAIN:
+    6:	  0030	75 89 20	        MOV TMOD, #20H   ;  Mode 2
+    7:	  0033	75 8D FD	        MOV TH1, #0FDH   ; Baud Rate = 9600
+    8:	  0036	75 98 50	        MOV SCON, #50H   ;
+    9:	  0039	D2 8E		        SETB TR1         ;Timer 1
+   10:
+   11:	  003B			WAIT_RX:
+   12:	  003B	30 98 FD	        JNB RI, WAIT_RX  ; (RI=1)
+   13:	  003E	C2 98		        CLR RI
+   14:	  0040	E5 99		        MOV A, SBUF
+   15:
+   16:
+   17:	  0042	B4 30 00	        CJNE A, #'0', CHK_GE_0
+   18:	  0045			CHK_GE_0:
+   19:	  0045	40 F4		        JC WAIT_RX
+   20:
+   21:	  0047	B4 3A 00	        CJNE A, #'9'+1, CHK_LE_9
+   22:	  004A			CHK_LE_9:
+   23:	  004A	50 EF		        JNC WAIT_RX
+   24:
+   25:				        ;  Index 0-9
+   26:	  004C	C3		        CLR C
+   27:	  004D	94 30		        SUBB A, #30H
+   28:
+   29:				        ;  7-Segment
+   30:	  004F	90 00 57	        MOV DPTR, #SEG_DATA
+   31:	  0052	93		        MOVC A, @A+DPTR
+   32:	  0053	F5 A0		        MOV P2, A
+   33:	  0055	80 E4		        SJMP WAIT_RX
+   34:	  0057			SEG_DATA:
+   35:				        ; ตารางข้อมูล 7-Segment แบบ Common Anode สำหรับเลข 0 - 9
+   36:	  0057	C0 F9 A4 B0	        DB 0C0H, 0F9H, 0A4H, 0B0H, 099H, 092H, 082H, 0F8H, 080H, 090H
+	  005B	99 92 82 F8
+	  005F	80 90
+   37:
+   38:				        END
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CHK_GE_0			  CODE	    0045	  18
+CHK_LE_9			  CODE	    004A	  22
+CY				  BIT	      D7
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+MAIN				  CODE	    0030	   5
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+SCON				  DATA	      98
+SEG_DATA			  CODE	    0057	  34
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WAIT_RX				  CODE	    003B	  11
+WR				  BIT	      B6

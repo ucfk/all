@@ -1,0 +1,105 @@
+#define BLYNK_TEMPLATE_ID "TMPL6_Dhyo6b3"
+#define BLYNK_TEMPLATE_NAME "B6728793"
+#define BLYNK_AUTH_TOKEN "tVylKIngpwRG_4AA9NbjSfm-Y-zFALyr"
+
+#define BLYNK_PRINT Serial
+
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+#include <Adafruit_AHTX0.h>
+
+Adafruit_AHTX0 aht;
+#define LED_0 5
+#define LED_1 18
+#define SW0 15
+#define SW1 12
+
+char ssid[] = "Cgrs";
+char pass[] = "@@@@@@@@";
+
+int valuev0 = 0; // สถานะ LED_0
+int valuev1 = 0; // สถานะ LED_1
+int tempera = 0;
+int humi = 0;
+
+// ตัวแปรสำหรับเช็คสถานะปุ่มกด (ป้องกันการกดค้างแล้วไฟรัว)
+bool lastSw0State = HIGH;
+bool lastSw1State = HIGH;
+
+BlynkTimer timer;
+
+void myTimerEvent() {
+  // อ่านค่าจาก Sensor
+  sensors_event_t humidity, temp;
+  aht.getEvent(&humidity, &temp);
+  tempera = temp.temperature;
+  humi = humidity.relative_humidity;
+
+  // ส่งค่า Sensor ไปที่ Blynk
+  Blynk.virtualWrite(V23, tempera);
+  Blynk.virtualWrite(V24, humi);
+
+  Serial.print("V21(LED0): "); Serial.print(valuev0);
+  Serial.print(" | V20(LED1): "); Serial.println(valuev1);
+}
+
+// ฟังก์ชันเช็คปุ่มกดแบบ Toggle
+void checkPhysicalButtons() {
+  // เช็ค SW0 (ขา 18)
+  bool currentSw0 = digitalRead(SW0);
+  if (currentSw0 == LOW && lastSw0State == HIGH) { // ตรวจสอบจังหวะกดลง (Active LOW)
+    delay(50); 
+    valuev0 = !valuev0; 
+    digitalWrite(LED_0, valuev0);
+    Blynk.virtualWrite(V21, valuev0); 
+    Serial.println("SW0 Pressed - Toggle LED_0");
+  }
+  lastSw0State = currentSw0;
+
+  // เช็ค SW1 (ขา 19)
+  bool currentSw1 = digitalRead(SW1);
+  if (currentSw1 == LOW && lastSw1State == HIGH) {
+    delay(50); // Debounce
+    valuev1 = !valuev1;
+    digitalWrite(LED_1, valuev1);
+    Blynk.virtualWrite(V20, valuev1); // อัปเดตสถานะกลับไปที่ปุ่มบนเว็บ V20
+    Serial.println("SW1 Pressed - Toggle LED_1");
+  }
+  lastSw1State = currentSw1;
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_0, OUTPUT);
+  pinMode(LED_1, OUTPUT);
+  
+  // ตั้งเป็น INPUT_PULLUP เพื่อให้ขาไม่ลอย (ถ้าต่อปุ่มลง GND)
+  pinMode(SW0, INPUT_PULLUP);
+  pinMode(SW1, INPUT_PULLUP);
+
+  if (!aht.begin()) {
+    Serial.println("Could not find AHT? Check wiring");
+  }
+  
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+  timer.setInterval(1000L, myTimerEvent);
+}
+
+// รับค่าจากปุ่มบนหน้าเว็บ V21
+BLYNK_WRITE(V21) {
+  valuev0 = param.asInt();
+  digitalWrite(LED_0, valuev0);
+}
+
+// รับค่าจากปุ่มบนหน้าเว็บ V20
+BLYNK_WRITE(V20) {
+  valuev1 = param.asInt();
+  digitalWrite(LED_1, valuev1);
+}
+
+void loop() {
+  Blynk.run();
+  timer.run();
+  checkPhysicalButtons(); // เรียกฟังก์ชันเช็คปุ่มกดตลอดเวลา
+}

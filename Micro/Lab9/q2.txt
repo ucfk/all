@@ -1,0 +1,72 @@
+const int segmentPins[] = { 17, 5, 18, 19, 21, 22, 23, 15 };
+
+const int positionPins[] = { 13, 12, 14, 27 };
+
+const byte digitPatterns[] = {
+  0b11111110, // 0
+  0b00000110, // 1
+  0b11111010, // 2 (แก้ไข)
+  0b11001110, // 3
+  0b01100110, // 4
+  0b01111100, // 5 (แก้ไข)
+  0b01111100, // 6 (แก้ไข)
+  0b01111100, // 7
+  0b01111100, // 8
+  0b01111100  // 9
+};
+
+void setup() {
+
+for (int i = 0; i < 8; i++)
+
+pinMode(segmentPins[i], OUTPUT);
+
+for (int i = 0; i < 4; i++) {
+
+pinMode(positionPins[i], OUTPUT);
+
+digitalWrite(positionPins[i], LOW);
+
+}
+
+}
+
+void displayDigit(int digit, int position) {
+
+byte pattern = digitPatterns[digit];
+
+for (int i = 0; i < 8; i++) {
+
+bool bitValue = bitRead(pattern, i); // AcƟve Low
+
+digitalWrite(segmentPins[i], bitValue);
+
+}
+
+digitalWrite(positionPins[position], HIGH);
+
+delay(5);
+
+digitalWrite(positionPins[position], LOW);
+
+}
+
+void display4Digit(int tempp) {
+
+tempp %= 10000; displayDigit(tempp / 1000, 3);
+
+tempp %= 1000; displayDigit(tempp / 100, 2);
+
+tempp %= 100; displayDigit(tempp / 10, 1);
+
+tempp %= 10; displayDigit(tempp / 1, 0);
+
+}
+
+void loop() {
+
+int Counter = 6265;
+
+display4Digit(Counter);
+
+}

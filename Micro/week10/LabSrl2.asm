@@ -1,0 +1,96 @@
+ORG 0000H
+LJMP START
+
+
+ORG 0100H
+;TABLE: DB 3FH, 06H, 5BH, 4FH, 66H, 6DH, 7DH, 07H, 7FH, 6FH active hihg
+TABLE: DB 0C0H, 0F9H, 0A4H, 0B0H, 99H, 92H, 82H, 0F8H, 80H, 90H
+START:
+    MOV TMOD, #20H
+    MOV TH1, #0FDH
+    MOV SCON, #50H
+    SETB TR1
+    MOV R0, #0    
+    ACALL SHOW_NUM
+
+MAIN:
+    JNB RI, $
+    CLR RI
+    MOV A, SBUF
+
+    
+    CJNE A, #2BH, NOT_PLUS_KEY
+    CJNE R0, #9, INC_VAL
+    SJMP MAIN       
+INC_VAL:
+    INC R0
+    ACALL SHOW_NUM
+    SJMP MAIN
+
+NOT_PLUS_KEY:
+   
+    CJNE A, #2DH, NOT_MINUS_KEY
+    CJNE R0, #0, DEC_VAL
+    SJMP MAIN      
+DEC_VAL:
+    DEC R0
+    ACALL SHOW_NUM
+    SJMP MAIN
+
+NOT_MINUS_KEY:
+    
+    CJNE A, #30H, CHECK_OTHER_NUM
+    ACALL SHOW_NUM 
+    SJMP MAIN
+
+CHECK_OTHER_NUM:
+   
+    MOV R2, A      
+    CLR C
+    SUBB A, #31H    
+    JC IS_OTHER    
+    MOV A, R2
+    CLR C
+    SUBB A, #3AH   
+    JNC IS_OTHER   
+    
+    
+    MOV A, R2       
+    ACALL BLINK_LED
+    SJMP MAIN
+
+IS_OTHER:
+    CLR P3.2        
+    MOV P1, #3FH   
+    SJMP MAIN
+
+
+SHOW_NUM:
+    SETB P3.2      
+    MOV A, R0
+    MOV DPTR, #TABLE
+    MOVC A, @A+DPTR
+    MOV P1, A
+    RET
+
+BLINK_LED:
+    PUSH ACC
+    ANL A, #0FH   
+    MOV R7, A
+LOOP_B:
+    SETB P3.7
+    ACALL DELAY
+    CLR P3.7
+    ACALL DELAY
+    DJNZ R7, LOOP_B
+    POP ACC
+    RET
+
+DELAY:
+    MOV R6, #200
+D1: MOV R5, #250
+    DJNZ R5, $
+    DJNZ R6, D1
+    RET
+
+END

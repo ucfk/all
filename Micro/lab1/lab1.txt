@@ -1,0 +1,347 @@
+int led = 2; 
+// the setup routine runs once when you press reset: 
+void setup() { 
+pinMode(led, OUTPUT); 
+for(int i=0;i<2;i++){
+  digitalWrite(led, HIGH); 
+  delay(300); 
+  digitalWrite(led, LOW); 
+  delay(300); 
+}
+} 
+// the loop routine runs over and over again forever: 
+void loop() { 
+} 
+
+
+
+
+int led1 = 23; 
+int led2= 22; 
+int led3= 21; 
+int led4= 19; 
+// the setup routine runs once when you press reset: 
+void off(){
+   digitalWrite(led1, LOW); 
+   digitalWrite(led2, LOW); 
+   digitalWrite(led3, LOW); 
+   digitalWrite(led4, LOW); 
+}
+void setup() {          
+pinMode(led1, OUTPUT);      
+pinMode(led2, OUTPUT);      
+pinMode(led3, OUTPUT);      
+pinMode(led4, OUTPUT);      
+} 
+// the loop routine runs over and over again forever: 
+void loop() { 
+digitalWrite(led1, HIGH); 
+delay(300); 
+digitalWrite(led2,HIGH); 
+delay(300); 
+digitalWrite(led3, HIGH); 
+delay(300); 
+digitalWrite(led4, HIGH); 
+delay(300); 
+off();
+delay(300); 
+} 
+
+
+
+
+int pushButton = 15; 
+int led1 = 23; 
+int led2= 22; 
+int led3= 21; 
+int led4= 19; 
+void off(){
+   digitalWrite(led1, LOW); 
+   digitalWrite(led2, LOW); 
+   digitalWrite(led3, LOW); 
+   digitalWrite(led4, LOW); 
+}
+void allon(){
+   digitalWrite(led1, HIGH); 
+   digitalWrite(led2, HIGH); 
+   digitalWrite(led3, HIGH); 
+   digitalWrite(led4, HIGH); 
+}
+void setup() { 
+  Serial.begin(9600); 
+  pinMode(pushButton, INPUT); 
+  pinMode(led1, OUTPUT);      
+pinMode(led2, OUTPUT);      
+pinMode(led3, OUTPUT);      
+pinMode(led4, OUTPUT);      
+} 
+void loop() { 
+  int buttonState = digitalRead(pushButton); 
+  Serial.println(buttonState);
+  delay(1); 
+  if(buttonState==0){
+   allon();
+  }else{
+   off();
+  }
+} 
+
+
+
+
+
+int pushButton = 15; 
+int led[] ={2,4,5,18,19,21,22,23}; 
+void off(){
+   for(int i=0;i<8;i++){
+   digitalWrite(led[i], LOW); 
+   }
+}
+void allon(){
+   for(int i=0;i<8;i++){
+   digitalWrite(led[i], HIGH); 
+   } 
+}
+void onfromL(){
+   for(int i=0;i<8;i++){
+   digitalWrite(led[i], HIGH);
+   delay(100); 
+   } 
+}
+void onfromR(){
+   for(int i=0;i<8;i++){
+   digitalWrite(led[7-i], HIGH);
+   delay(100); 
+   } 
+}
+void setup() { 
+  Serial.begin(9600); 
+  pinMode(pushButton, INPUT); 
+   for(int i=0;i<8;i++){
+   pinMode(led[i], OUTPUT);
+   }
+} 
+void loop() { 
+  int buttonState = digitalRead(pushButton); 
+  Serial.println(buttonState);
+  delay(1); 
+  if(buttonState==1){
+   onfromR();
+  }else{
+   onfromL();
+  }
+   delay(100); 
+   off();
+   delay(100); 
+} 
+
+
+
+
+
+volatile int doOpe = 0; // ต้องใส่ volatile เพราะค่าถูกเปลี่ยนนอก loop ปกติ
+void IRAM_ATTR handleButton1() { doOpe = 1; }
+void IRAM_ATTR handleButton2() { doOpe = 2; }
+int pushButton = 15; 
+int pushButton2 = 13; 
+int led[] ={2,4,5,18,19,21,22,23}; 
+void off(){
+   for(int i=0;i<8;i++){
+   digitalWrite(led[i], LOW); 
+   }
+}
+void allon(){
+   for(int i=0;i<8;i++){
+   digitalWrite(led[i], HIGH); 
+   } 
+}
+void onfromL(){
+   for(int i=0;i<8;i++){
+   digitalWrite(led[i], HIGH);
+   delay(100); 
+   } 
+}
+void onfromR(){
+   for(int i=0;i<8;i++){
+   digitalWrite(led[7-i], HIGH);
+   delay(100); 
+   } 
+}
+void setup() { 
+  Serial.begin(9600); 
+  pinMode(pushButton, INPUT_PULLUP);
+  pinMode(pushButton2, INPUT_PULLUP);
+  
+  // ตั้งค่า Interrupt: ทำงานเมื่อกดปุ่ม (FALLING คือจาก 1 เป็น 0)
+  attachInterrupt(digitalPinToInterrupt(pushButton), handleButton1, FALLING);
+  attachInterrupt(digitalPinToInterrupt(pushButton2), handleButton2, FALLING);
+   for(int i=0;i<8;i++){
+   pinMode(led[i], OUTPUT);
+   }
+} 
+void loop() {  
+   if(doOpe==1){
+      
+   onfromL();
+   }else if(doOpe==2){
+   onfromR();
+   }
+   delay(100); 
+   off();
+   delay(100); 
+} 
+
+
+
+
+
+volatile int doOpe = 0; // ต้องใส่ volatile เพราะค่าถูกเปลี่ยนนอก loop ปกติ
+volatile int count = 0; // ต้องใส่ volatile เพราะค่าถูกเปลี่ยนนอก loop ปกติ
+volatile unsigned long lastmic = 0; // ต้องใส่ volatile เพราะค่าถูกเปลี่ยนนอก loop ปกติ
+void IRAM_ATTR handleButton1() { 
+   if((long)(millis()-lastmic>=300)){
+      count=count+1;
+      if(count==5){
+         count=1;
+      }
+      lastmic=millis();
+      doOpe = 1;
+   }
+   }
+void IRAM_ATTR handleButton2() { doOpe = 2;count=0; }
+int pushButton = 15; 
+int pushButton2 = 13; 
+int led[] ={2,4,5,18,19,21,22,23}; 
+void brake(){
+   for(int i=0;i<10;i++){
+      allon();
+      delay(100);
+      off();
+   }
+}
+void off(){
+   for(int i=0;i<8;i++){
+   digitalWrite(led[i], LOW); 
+   }
+}
+void allon(){
+   for(int i=0;i<8;i++){
+   digitalWrite(led[i], HIGH); 
+   } 
+}
+void onfromL(){
+   for(int i=0;i<8;i++){
+   if(count!=1){return;};
+   digitalWrite(led[i], HIGH);
+   delay(100); 
+   } 
+}
+void onfromR(){
+   for(int i=0;i<8;i++){
+   if(count!=3){return;};
+   digitalWrite(led[7-i], HIGH);
+   delay(100); 
+   } 
+}
+void setup() { 
+  Serial.begin(9600); 
+  pinMode(pushButton, INPUT_PULLUP);
+  pinMode(pushButton2, INPUT_PULLUP);
+  
+  // ตั้งค่า Interrupt: ทำงานเมื่อกดปุ่ม (FALLING คือจาก 1 เป็น 0)
+  attachInterrupt(digitalPinToInterrupt(pushButton), handleButton1, FALLING);
+  attachInterrupt(digitalPinToInterrupt(pushButton2), handleButton2, FALLING);
+   for(int i=0;i<8;i++){
+   pinMode(led[i], OUTPUT);
+   }
+} 
+void loop() {  
+   Serial.print(count);
+   if(doOpe==1&&count==1){
+      off();
+      delay(100); 
+      onfromL();
+   }if(doOpe==1&&count==2||doOpe==1&&count==4){
+      
+   }if(doOpe==1&&count==3){
+      off();
+      delay(100); 
+      onfromR();  
+   }
+   if(doOpe==2){
+   off();
+   }
+   delay(100); 
+} 
+
+
+
+
+
+volatile int doOpe = 0; // ต้องใส่ volatile เพราะค่าถูกเปลี่ยนนอก loop ปกติ
+volatile int count = 0; // ต้องใส่ volatile เพราะค่าถูกเปลี่ยนนอก loop ปกติ // ต้องใส่ volatile เพราะค่าถูกเปลี่ยนนอก loop ปกติ
+volatile unsigned long lastmic = 0; // ต้องใส่ volatile เพราะค่าถูกเปลี่ยนนอก loop ปกติ
+void IRAM_ATTR handleButton2() { doOpe = 2;count=0; }
+int pushButton = 15; 
+int pushButton2 = 13; 
+int led[] ={2,4,5,18,19,21,22,23}; 
+void off(){
+   for(int i=0;i<8;i++){
+   digitalWrite(led[i], LOW); 
+   }
+}
+void allon(){
+   for(int i=0;i<8;i++){
+   digitalWrite(led[i], HIGH); 
+   } 
+}
+void onfromL(){
+   for(int i=0;i<8;i++){
+   if(count!=1){return;};
+   digitalWrite(led[i], HIGH);
+   delay(100); 
+   } 
+}
+void onfromR(){
+   for(int i=0;i<8;i++){
+   if(count!=3){return;};
+   digitalWrite(led[7-i], HIGH);
+   delay(100); 
+   } 
+}
+void setup() { 
+  Serial.begin(9600); 
+  pinMode(pushButton, INPUT_PULLUP);
+  pinMode(pushButton2, INPUT_PULLUP);
+  
+  // ตั้งค่า Interrupt: ทำงานเมื่อกดปุ่ม (FALLING คือจาก 1 เป็น 0)
+
+   for(int i=0;i<8;i++){
+   pinMode(led[i], OUTPUT);
+   }
+} 
+void loop() {
+  // อ่านค่าจากปุ่มมาเก็บในตัวแปร buttonState
+  int buttonState = digitalRead(pushButton); 
+  Serial.println(buttonState); // ดูสถานะในจอ Monitor
+
+  if (buttonState == LOW) { // 0 = เหยียบเบรก (กดแช่)
+    
+    // --- สเต็ป 1: กะพริบ 10 ครั้ง ---
+    for (int i = 0; i < 10; i++) {
+      // เช็คระหว่างทาง: ถ้าปล่อยเบรกกลางคัน ให้เลิกกะพริบและออกจาก loop นี้ทันที
+      if (digitalRead(pushButton) == HIGH) break; 
+      
+      allon();   delay(100);
+      off();     delay(100);
+    }
+
+    // --- สเต็ป 2: หลังจากกะพริบครบ ถ้ายังเหยียบแช่อยู่ ให้ติดค้าง ---
+    while (digitalRead(pushButton) == LOW) {
+      allon(); 
+    }
+    
+  } else { // 1 = ปล่อยเบรก
+    off(); // ดับไฟทันที
+  }
+} 

@@ -1,0 +1,25 @@
+• กด SW1 ครั ้งแรก  ให้ LED เป็นไฟวิ่งจากซ้ายไปขวา 
+• กด SW1 ถัดมา   ให้ LED หยุดและค้างค่าไว้ 
+• กด SW1 ถัดมา  ให้ LED เป็นไฟวิ่งจากขวาไปซ้าย 
+• กด SW1 ถัดมา    ให้ LED หยุดและค้างค่าไว้ 
+• กด SW1 ถัดมา    ให้วนรอบซ ้า เหมือนกด SW1 ครั ้งแรก 
+
+
+int pushButton = 15;  
+int led[] = { 23, 22, 21, 19, 18, 5, 4, 2 }; 
+volatile int lastled=0; 
+volatile int Do=0; 
+volatile unsigned long lastmic = 0; 
+void IRAM_ATTR plus(){ if((long)(millis()-lastmic>=300)){ 
+      Do++;if(Do==5){Do=1;}} 
+      lastmic=millis(); 
+   } 
+void onfromR(int last){ 
+    if(last==0){last=7;} 
+   for(int i=last;i>=0;i--){ 
+   digitalWrite(led[i], HIGH); 
+   delay(200);  
+   digitalWrite(led[i], LOW); 
+   if(Do==4){ 
+    lastled=i; 
+    break; 

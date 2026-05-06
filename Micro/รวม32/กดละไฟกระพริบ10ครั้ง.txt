@@ -1,0 +1,34 @@
+• เมื ่อเหยียบเบรก(กดสวิตช์) ให้ไฟ LED ทั ้ง 8 หลอดกระพริบพร้อมกัน 10 ครั ้ง 
+    เมื ่อครบแล้ว ให้ LED ทั ้ง 8 หลอดติดค้างไว้ 
+• หากปล่อยเบรก   ให้ LED ทั ้งหมดดับ ในทันที 
+      
+int pushButton = 15;  
+int led[] = { 23, 22, 21, 19, 18, 5, 4, 2 }; 
+volatile int lastled=0; 
+void brake(){ 
+   for(int i=0;i<10;i++){ 
+      off(); 
+      delay(150); 
+      allon(); 
+      if(digitalRead(pushButton)==1){ 
+      off();break;} 
+      delay(100);}} 
+void off(){ 
+   for(int i=0;i<8;i++){ 
+   digitalWrite(led[i], LOW); }} 
+void allon(){ 
+   for(int i=0;i<8;i++){ 
+   digitalWrite(led[i], HIGH); }} 
+void setup() {  
+  Serial.begin(9600);  
+  pinMode(pushButton, INPUT_PULLUP);  
+   for(int i=0;i<8;i++){ 
+   pinMode(led[i], OUTPUT);}}  
+void loop() {  
+  int buttonState = digitalRead(pushButton);  
+  if(buttonState==1){off();} 
+  if(buttonState==0){ 
+    brake(); 
+    while(digitalRead(pushButton)==0){allon(); 
+  } 
+}} 

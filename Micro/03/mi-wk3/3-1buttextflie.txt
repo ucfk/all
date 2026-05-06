@@ -1,0 +1,24 @@
+int SegmentPort[] = { 23, 22, 21, 19, 18, 5, 4, 2 };
+int SegmentTable[] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 
+0x6D, 0x7D, 0x07, 0x7F, 0x6F,0x77,0x7C,0x39,0x5E,0x79,0x71
+}; 
+int nCounter = 15; 
+void Display_1Digit_7Segment(int iData) { 
+int SegDecode = ~SegmentTable[iData];
+for (int i = 0; i < 8; i++) { 
+digitalWrite(SegmentPort[7-i], SegDecode & 1); 
+SegDecode = SegDecode >> 1; 
+} 
+} 
+void setup() { 
+for (int i = 0; i < 8; i++) 
+pinMode(SegmentPort[i], OUTPUT); 
+} 
+void loop() { 
+Display_1Digit_7Segment(nCounter); 
+nCounter--; 
+delay(200); 
+while(nCounter==-1){
+  Display_1Digit_7Segment(10); 
+}
+} 

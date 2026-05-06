@@ -1,0 +1,140 @@
+[
+    {
+        "id": "17b34876a1ddeea6",
+        "type": "mqtt in",
+        "z": "b8a582c7e70aca10",
+        "name": "",
+        "topic": "B6728793",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "a2fc77faaac0da9a",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 280,
+        "y": 380,
+        "wires": [
+            [
+                "0b7509d02c31382c"
+            ]
+        ]
+    },
+    {
+        "id": "0b7509d02c31382c",
+        "type": "function",
+        "z": "b8a582c7e70aca10",
+        "name": "function 1",
+        "func": "var myArray = msg.payload.split(\",\");\nvar tTemp = myArray[0].split(\"=\"); // ได้ [\"T\", \"25.5\"]\nvar hTemp = myArray[1].split(\"=\"); // ได้ [\"H\", \"45.0\"]\n\n// ดึงค่าตัวเลขออกมาใช้งาน\nvar Tempp = parseFloat(tTemp[1]);\nvar Humid = parseFloat(hTemp[1]);\n\nvar templimit = 24;\nvar humilimit = 40;\n\n// แก้ไข: ใช้ตัวแปร Tempp และ Humid ที่เป็นตัวเลขในการเช็คเงื่อนไข\nif (Tempp > templimit || Humid > humilimit) {\n    msg.payload = {\n        chatId: \"6545843941\",\n        type: \"message\",\n        // แก้ไข: ใช้ Tempp และ Humid ในการแสดงผลข้อความ\n        content: \"⚠️ แจ้งเตือน! ค่าเกินกำหนด \\nอุณหภูมิ: \" + Tempp + \"°C \\nความชื้น: \" + Humid + \"%\"\n    };\n    return msg;\n}\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 380,
+        "wires": [
+            [
+                "eb2be93be71b19cf",
+                "75ce4e48e70fdd01"
+            ]
+        ]
+    },
+    {
+        "id": "eb2be93be71b19cf",
+        "type": "debug",
+        "z": "b8a582c7e70aca10",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "75ce4e48e70fdd01",
+        "type": "telegram sender",
+        "z": "b8a582c7e70aca10",
+        "name": "",
+        "bot": "eaeafafc35980aeb",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 610,
+        "y": 460,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a2fc77faaac0da9a",
+        "type": "mqtt-broker",
+        "name": "broker.emqx.io",
+        "broker": "broker.emqx.io",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "eaeafafc35980aeb",
+        "type": "telegram bot",
+        "botname": "Jon",
+        "usernames": "",
+        "chatids": "",
+        "baseapiurl": "",
+        "testenvironment": false,
+        "updatemode": "polling",
+        "pollinterval": 300,
+        "usesocks": false,
+        "sockshost": "",
+        "socksprotocol": "socks5",
+        "socksport": 6667,
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbothost": "0.0.0.0",
+        "localbotport": 8443,
+        "publicbotport": 8443,
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": false
+    },
+    {
+        "id": "b4f2943f25a03732",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-telegrambot": "17.1.3"
+        }
+    }
+]

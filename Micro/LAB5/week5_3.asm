@@ -1,0 +1,17 @@
+	MOV	DPTR, #1234H
+	MOV	R0, #00H
+	MOV	R1, #11H
+	
+	CLR	C
+	MOV	A, DPL
+	ADDC	A, R0
+	ADDC	A, R1
+	MOV	31H, A
+	
+	MOV	A, DPH
+	ADDC	A, #00H
+	MOV	30H, A
+	
+	SJMP	$
+	
+	END

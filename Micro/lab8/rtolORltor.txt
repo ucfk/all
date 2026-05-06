@@ -1,0 +1,79 @@
+int s1=13;
+int s2=12;
+int s3=14;
+int s4=27;
+int led []={22,21,19,18,5,4,2,15};
+void setup() {
+    for(int i=0;i<=7;i++){
+    pinMode(led[i],OUTPUT);
+  }
+  pinMode(s1,INPUT_PULLUP);
+  pinMode(s2,INPUT_PULLUP);
+  pinMode(s3,INPUT_PULLUP);
+  pinMode(s4,INPUT_PULLUP);
+
+}
+void ltorslow(){
+    for(int i=0;i<=7;i++){
+    digitalWrite(led[i],1);
+    delay(600);
+    if(digitalRead(s3)==1)break;
+    digitalWrite(led[i],0);
+    delay(600);
+  }
+}
+void ltorfast(){
+    for(int i=0;i<=7;i++){
+    digitalWrite(led[i],1);
+    delay(200);
+    if(digitalRead(s4)==1)break;
+    digitalWrite(led[i],0);
+    delay(200);
+  }
+}
+void rtolfast(){
+    for(int i=7;i>=0;i--){
+    digitalWrite(led[i],1);
+    delay(200);
+    if(digitalRead(s1)==1)break;
+    digitalWrite(led[i],0);
+    delay(200);
+  }
+}
+void rtolslow(){
+    for(int i=7;i>=0;i--){
+    digitalWrite(led[i],1);
+    delay(600);
+    if(digitalRead(s2)==1)break;
+    digitalWrite(led[i],0);
+    delay(600);
+  }
+}
+void off(){
+    for(int i=7;i>=0;i--){
+    digitalWrite(led[i],0);
+  }
+}
+int doo=0;
+void check(){
+  int sw1=digitalRead(s1);
+  int sw2=digitalRead(s2);
+  int sw3=digitalRead(s3);
+  int sw4=digitalRead(s4);
+  if(sw1==0)(doo=1);
+  if(sw2==0)(doo=2);
+  if(sw3==0)(doo=3);
+  if(sw4==0)(doo=4);
+  if(sw1==1 && sw2==1 && sw3==1 && sw4==1){
+    doo=0;
+  }
+}
+void loop() {
+  check();
+  if(doo==0)off();
+  if(doo==1)rtolfast();
+  if(doo==2)rtolslow();
+  if(doo==3)ltorslow();
+  if(doo==4)ltorfast();
+
+}

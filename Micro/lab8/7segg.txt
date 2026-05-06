@@ -1,0 +1,149 @@
+int s1=13;
+int s2=12;
+int s3=14;
+int s4=27;
+int seg []={21,19,18,5,4,2,15};
+
+void play(int show){
+  if(show==0){
+    digitalWrite(seg[6],0);
+    digitalWrite(seg[5],0);
+    digitalWrite(seg[4],0);
+    digitalWrite(seg[3],0);
+    digitalWrite(seg[2],0);
+    digitalWrite(seg[1],0);
+    digitalWrite(seg[0],1);
+  }if(show==1){
+  digitalWrite(seg[6],1);
+  digitalWrite(seg[5],0);
+  digitalWrite(seg[4],0);
+  digitalWrite(seg[3],1);
+  digitalWrite(seg[2],1);
+  digitalWrite(seg[1],1);
+  digitalWrite(seg[0],1);
+  }if(show==1){
+  digitalWrite(seg[6],1);
+  digitalWrite(seg[5],0);
+  digitalWrite(seg[4],0);
+  digitalWrite(seg[3],1);
+  digitalWrite(seg[2],1);
+  digitalWrite(seg[1],1);
+  digitalWrite(seg[0],1);
+  }if(show==2){
+  digitalWrite(seg[6],0);
+  digitalWrite(seg[5],0);
+  digitalWrite(seg[4],1);
+  digitalWrite(seg[3],0);
+  digitalWrite(seg[2],0);
+  digitalWrite(seg[1],1);
+  digitalWrite(seg[0],0);
+  }if(show==3){
+  digitalWrite(seg[6],0);
+  digitalWrite(seg[5],0);
+  digitalWrite(seg[4],0);
+  digitalWrite(seg[3],0);
+  digitalWrite(seg[2],1);
+  digitalWrite(seg[1],1);
+  digitalWrite(seg[0],0);
+  }if(show==4){
+  digitalWrite(seg[6],1);
+  digitalWrite(seg[5],0);
+  digitalWrite(seg[4],0);
+  digitalWrite(seg[3],1);
+  digitalWrite(seg[2],1);
+  digitalWrite(seg[1],0);
+  digitalWrite(seg[0],0);
+  }if(show==5){
+  digitalWrite(seg[6],0);
+  digitalWrite(seg[5],1);
+  digitalWrite(seg[4],0);
+  digitalWrite(seg[3],0);
+  digitalWrite(seg[2],1);
+  digitalWrite(seg[1],0);
+  digitalWrite(seg[0],0);
+  }if(show==6){
+  digitalWrite(seg[6],0);
+  digitalWrite(seg[5],1);
+  digitalWrite(seg[4],0);
+  digitalWrite(seg[3],0);
+  digitalWrite(seg[2],0);
+  digitalWrite(seg[1],0);
+  digitalWrite(seg[0],0);
+  }if(show==7){
+  digitalWrite(seg[6],0);
+  digitalWrite(seg[5],0);
+  digitalWrite(seg[4],0);
+  digitalWrite(seg[3],1);
+  digitalWrite(seg[2],1);
+  digitalWrite(seg[1],1);
+  digitalWrite(seg[0],1);
+  }if(show==8){
+  digitalWrite(seg[6],0);
+  digitalWrite(seg[5],0);
+  digitalWrite(seg[4],0);
+  digitalWrite(seg[3],0);
+  digitalWrite(seg[2],0);
+  digitalWrite(seg[1],0);
+  digitalWrite(seg[0],0);
+  }if(show==9){
+  digitalWrite(seg[6],0);
+  digitalWrite(seg[5],0);
+  digitalWrite(seg[4],0);
+  digitalWrite(seg[3],0);
+  digitalWrite(seg[2],1);
+  digitalWrite(seg[1],0);
+  digitalWrite(seg[0],0);
+  }if(show==10){
+  digitalWrite(seg[6],1);
+  digitalWrite(seg[5],1);
+  digitalWrite(seg[4],1);
+  digitalWrite(seg[3],1);
+  digitalWrite(seg[2],1);
+  digitalWrite(seg[1],1);
+  digitalWrite(seg[0],1);
+}
+}
+
+void setup() {
+  for(int i=0;i<=6;i++){
+    pinMode(seg[i],OUTPUT);
+  }
+  pinMode(s1,INPUT_PULLUP);
+  pinMode(s2,INPUT_PULLUP);
+  pinMode(s3,INPUT_PULLUP);
+  pinMode(s4,INPUT_PULLUP);
+}
+int co=0;
+int playy=0;
+int last1=digitalRead(s1);
+int last2=digitalRead(s2);
+int last3=digitalRead(s3);
+int last4=digitalRead(s4);
+void check(){
+  int sw1=digitalRead(s1);
+  int sw2=digitalRead(s2);
+  int sw3=digitalRead(s3);
+  int sw4=digitalRead(s4);
+  co=0;
+  delay(50);
+  if(sw1==0 )(co+=1);
+  if(sw2==0 )(co+=2);
+  if(sw3==0 )(co+=4);
+  if(sw4==0 )(co+=8);
+  if(sw1 == 1 && sw2 == 1 && sw3 == 1 && sw4 == 1){
+    playy=10;
+  }else {
+    playy = co;
+  }
+  last1=sw1;
+  last2=sw2;
+  last3=sw3;
+  last4=sw4;
+}
+int digit=0;
+void loop() {
+  check();
+  digit=playy%10;
+  if(playy==10)(digit=10);
+  play(digit);
+}

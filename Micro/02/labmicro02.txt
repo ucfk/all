@@ -1,0 +1,113 @@
+#include <TM1638plus.h>  
+#include "DHTesp.h" 
+#define pin_STB 2   
+#define pin_CLK 4   
+#define pin_DIO 5   
+#define pinDHT22 15 
+DHTesp dht; 
+TM1638plus tm(pin_STB, pin_CLK , pin_DIO,false); 
+void setup() { 
+tm.displayBegin(); 
+tm.brightness(6); 
+dht.setup(pinDHT22, DHTesp::DHT22); 
+Serial.begin(19200); 
+} 
+void loop() 
+{
+int data,singleDigit; 
+float Humid = dht.getHumidity(); 
+float Tempp = dht.getTemperature(); 
+int Temp=(int)(Tempp*10);
+int Humidd=(int)(Humid*10);
+Serial.print(Temp);Serial.println(":Temp");  
+Serial.print(Humidd);Serial.println(":Humid");
+tm.displayASCII(7,'t',tm.DecPointOff);
+singleDigit = Temp % 10; Temp /= 10; tm.displayHex(6, singleDigit);
+singleDigit = Temp % 10; Temp /= 10; tm.displayASCII(5,'0' +(singleDigit),tm.DecPointOn);
+singleDigit = Temp % 10; Temp /= 10; tm.displayHex(4, singleDigit);
+tm.displayASCII(3,'h',tm.DecPointOff);
+data = Humidd % 10; Humidd /= 10; tm.displayHex(2, data);
+data = Humidd % 10; Humidd /= 10; tm.displayASCII(1,'0' +(data),tm.DecPointOn);
+data = Humidd % 10; Humidd /= 10; tm.displayHex(0, data); 
+delay(300); 
+} 
+
+
+
+
+
+
+#include "LedController.hpp" 
+#include "DHTesp.h" 
+#define Pin_DIN 2   
+#define Pin_CS 4   
+#define Pin_CLK 5   
+#define pinDHT22 15 
+DHTesp dht; 
+LedController<1, 1> lc; 
+void setup() { 
+lc = LedController<1, 1>(Pin_DIN, Pin_CLK, Pin_CS); 
+lc.setIntensity(8); 
+lc.clearMatrix(); 
+dht.setup(pinDHT22, DHTesp::DHT22); 
+Serial.begin(19200); 
+} 
+void loop() 
+{
+int data,singleDigit; 
+float Humid = dht.getHumidity(); 
+float Tempp = dht.getTemperature(); 
+int Temp=(int)(Tempp*100);
+int Humidd=(int)(Humid*100);
+Serial.print(Temp);Serial.println(":Temp");  
+Serial.print(Humidd);Serial.println(":Humid");
+singleDigit = Temp % 10; Temp /= 10; lc.setDigit(0, 0, singleDigit, false); //lc.setChar(0,0,'t',false);
+singleDigit = Temp % 10; Temp /= 10; lc.setDigit(0, 1, singleDigit, false); 
+singleDigit = Temp % 10; Temp /= 10; lc.setDigit(0, 2, singleDigit, true); 
+singleDigit = Temp % 10; Temp /= 10; lc.setDigit(0, 3, singleDigit, false); 
+data = Humidd % 10; Humidd /= 10; lc.setDigit(0, 4, data, false); 
+data = Humidd % 10; Humidd /= 10; lc.setDigit(0, 5, data, false); 
+data = Humidd % 10; Humidd /= 10; lc.setDigit(0, 6, data, true); 
+data = Humidd % 10; Humidd /= 10; lc.setDigit(0, 7, data, false); 
+delay(300); 
+} 
+
+
+
+
+
+#include "LedController.hpp" 
+#include <Adafruit_AHTX0.h> 
+Adafruit_AHTX0 aht;
+#define Pin_DIN 2  // D19  
+#define Pin_CS 4   // D18  
+#define Pin_CLK 5   // D5  
+#define pinDHT22 15  
+LedController<1, 1> lc; 
+void setup() { 
+aht.begin();
+lc = LedController<1, 1>(Pin_DIN, Pin_CLK, Pin_CS); 
+lc.setIntensity(8); 
+lc.clearMatrix(); 
+
+Serial.begin(19200); 
+} 
+void loop() 
+{
+int data,singleDigit; 
+sensors_event_t humidity, temp;
+aht.getEvent(&humidity, &temp);
+int Temp=(int)(temp.temperature*100);
+int Humidd=(int)(humidity.relative_humidity*100);
+Serial.print(Temp);Serial.println(":Temp");  
+Serial.print(Humidd);Serial.println(":Humid");
+singleDigit = Temp % 10; Temp /= 10; lc.setDigit(0, 0, singleDigit, false); 
+singleDigit = Temp % 10; Temp /= 10; lc.setDigit(0, 1, singleDigit, false); 
+singleDigit = Temp % 10; Temp /= 10; lc.setDigit(0, 2, singleDigit, true); 
+singleDigit = Temp % 10; Temp /= 10; lc.setDigit(0, 3, singleDigit, false); 
+data = Humidd % 10; Humidd /= 10; lc.setDigit(0, 4, data, false); 
+data = Humidd % 10; Humidd /= 10; lc.setDigit(0, 5, data, false); 
+data = Humidd % 10; Humidd /= 10; lc.setDigit(0, 6, data, true); 
+data = Humidd % 10; Humidd /= 10; lc.setDigit(0, 7, data, false); 
+delay(300); 
+} 

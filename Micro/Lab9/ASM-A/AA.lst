@@ -1,0 +1,155 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	C:\Users\nadth\OneDrive\Desktop\micro\Lab9\ASM-A\AA.asm
+	Object File:	C:\Users\nadth\OneDrive\Desktop\micro\Lab9\ASM-A\AA.hex
+	List File:	C:\Users\nadth\OneDrive\Desktop\micro\Lab9\ASM-A\AA.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:		N      0000		ORG 0000H
+    2:	  0000	21 00		 	JMP 0100H
+    3:
+    4:		N      0100	 	ORG 0100H
+    5:	  0100	75 81 3F	 	MOV SP,#3FH
+    6:	  0103	C2 AF		 	CLR EA
+    7:	  0105	75 89 11	 	MOV TMOD,#00010001B
+    8:
+    9:	  0108	C2 8E		T_OFF: 	CLR TR1 		; Stop Timer 4
+   10:	  010A	74 00		 	MOV A,#00H		; Out Pulse 5
+   11:	  010C	F5 A0		 	MOV P2,A 		; Out P1 6
+   12:	  010E	90 FD A6	 	MOV DPTR,#-615+13 	; Reload Data 8
+   13:	  0111	85 83 8D	 	MOV TH1,DPH 		; For TH1 9
+   14:	  0114	85 82 8B	 	MOV TL1,DPL 		; For TL1 10
+   15:	  0117	C2 8F		 	CLR TF1 		; Initial Start 11
+   16:	  0119	D2 8E		 	SETB TR1 		; Start Timer1 12
+   17:	  011B	30 8F FD	 	JNB TF1,$ 		; Wait Until TF On 13
+   18:				 	  			; 14
+   19:	  011E	C2 8E		T_ON: 	CLR TR1 		; 1MC 15
+   20:	  0120	74 FF		 	MOV A,#0FFH 		; 1MC 16
+   21:	  0122	F5 A0		 	MOV P2,A 		; 1MC 17
+   22:	  0124	90 FE D4	 	MOV DPTR,#-315+15 	; 2MC 20
+   23:	  0127	85 83 8D	 	MOV TH1,DPH 		; 2MC 21
+   24:	  012A	85 82 8B	 	MOV TL1,DPL 		; 2MC 22
+   25:	  012D	C2 8F		 	CLR TF1 		; 1MC 23
+   26:	  012F	D2 8E		 	SETB TR1 		; 1MC 24
+   27:	  0131	30 8F FD	 	JNB TF1,$ 		; 2MC 25
+   28:				 	 	 		; 26
+   29:	  0134	80 D2		 	JMP T_OFF 		; 2MC 27
+   30:
+   31:				 	END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CY				  BIT	      D7
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+T_OFF				  CODE	    0108	   9
+T_ON				  CODE	    011E	  19
+WR				  BIT	      B6

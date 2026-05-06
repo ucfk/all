@@ -1,0 +1,42 @@
+int led[] = { 23, 22, 21, 19, 18, 5, 4, 2 }; 
+int SW[]  = { 32,33,25,26,27,14,12,13 };//13ต่อสวิต7ไล่ลง12-6 14-5
+// ตัวแปรเก็บสถานะไฟ
+volatile bool ledStatus[] = {false, false, false, false, false, false, false, false};
+volatile unsigned long lastTime[] = {0, 0, 0, 0, 0, 0, 0, 0};
+void setup() {
+  Serial.begin(9600);     
+  for(int i = 0; i < 8; i++) {
+    pinMode(led[i], OUTPUT);
+    digitalWrite(led[i], LOW);
+    pinMode(SW[i], INPUT_PULLUP);
+  }
+  attachInterrupt(digitalPinToInterrupt(SW[0]), sw0, FALLING);
+  attachInterrupt(digitalPinToInterrupt(SW[1]), sw1, FALLING);
+  attachInterrupt(digitalPinToInterrupt(SW[2]), sw2, FALLING);
+  attachInterrupt(digitalPinToInterrupt(SW[3]), sw3, FALLING);
+  attachInterrupt(digitalPinToInterrupt(SW[4]), sw4, FALLING);
+  attachInterrupt(digitalPinToInterrupt(SW[5]), sw5, FALLING);
+  attachInterrupt(digitalPinToInterrupt(SW[6]), sw6, FALLING);
+  attachInterrupt(digitalPinToInterrupt(SW[7]), sw7, FALLING);
+}
+void loop() {
+  for(int i = 0; i < 8; i++) {
+    digitalWrite(led[i], ledStatus[i]);
+  }
+}
+void sw0() { handleToggle(0); } // กดปุ่ม 0 -> ไฟดวงที่ 0 เปลี่ยนสถานะ
+void sw1() { handleToggle(1); } // กดปุ่ม 1 -> ไฟดวงที่ 1 เปลี่ยนสถานะ
+void sw2() { handleToggle(2); } 
+void sw3() { handleToggle(3); }
+void sw4() { handleToggle(4); }
+void sw5() { handleToggle(5); }
+void sw6() { handleToggle(6); }
+void sw7() { handleToggle(7); }
+
+void handleToggle(int index) {
+  // ตรวจสอบ Debounce เพื่อไม่ให้ไฟกระพริบรัวๆ
+  if (millis() - lastTime[index] > 250) { 
+    ledStatus[index] = !ledStatus[index]; 
+    lastTime[index] = millis();
+  }
+}

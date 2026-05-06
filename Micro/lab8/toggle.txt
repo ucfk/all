@@ -1,0 +1,53 @@
+int s1=13;
+int s2=12;
+int s3=14;
+int s4=27;
+int led4=5;int led3=4;int led2=2;int led1=15;
+void setup() {
+  pinMode(led4,OUTPUT);
+  pinMode(led2,OUTPUT);
+  pinMode(led3,OUTPUT);
+  pinMode(led1,OUTPUT);
+
+  pinMode(s1,INPUT_PULLUP);
+  pinMode(s2,INPUT_PULLUP);
+  pinMode(s3,INPUT_PULLUP);
+  pinMode(s4,INPUT_PULLUP);
+
+}
+int co1=0;
+int co2=0;
+int co3=0;
+int co4=0;
+int l1=0;
+int l2=0;
+int l3=0;
+int l4=0;
+void check(){
+  int sw1=digitalRead(s1);
+  int sw2=digitalRead(s2);
+  int sw3=digitalRead(s3);
+  int sw4=digitalRead(s4);
+  if(sw1==0 && l1==1)(co1+=1);
+  if(sw2==0 && l2==1)(co2+=1);
+  if(sw3==0 && l3==1)(co3+=1);
+  if(sw4==0 && l4==1)(co4+=1);
+
+  if(co1==2)(co1=0);
+  if(co2==2)(co2=0);
+  if(co3==2)(co3=0);
+  if(co4==2)(co4=0);
+
+  l1=sw1;
+  l2=sw2;
+  l3=sw3;
+  l4=sw4;
+}
+void loop() {
+  check();
+  digitalWrite(led4,co4);
+  digitalWrite(led3,co3);
+  digitalWrite(led2,co2);
+  digitalWrite(led1,co1);
+
+}

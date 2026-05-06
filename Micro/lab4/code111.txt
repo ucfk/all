@@ -1,0 +1,31 @@
+ ORG 8000H
+ MOV R0,#60H
+ MOV R1,#00H
+ MOV R2,#9AH
+ MOV DPTR,#8000H
+ MOV R3,#0A0H
+ LOOP:	
+ 	MOV A,R1
+ 	MOV @R0,A
+ 	MOV R4,A
+	INC R1
+ 	INC R0
+        CLR C
+        SUBB A,#94H
+        JC CCC
+        JNC NCCC
+ 	
+ 	
+ CCC:
+ 	MOV A,R4
+ 	MOVX @DPTR,A
+	INC DPTR
+        DJNZ R2,LOOP
+        
+ 
+ NCCC:
+ 	MOV A,#0AAH
+ 	MOVX @DPTR,A
+	INC DPTR
+ 	DJNZ R2,LOOP
+ END
