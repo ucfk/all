@@ -5,12 +5,12 @@
 // 1. ตั้งค่า Hardware Pins
 // ==========================================
 // LED ภายนอก 8 ดวง
-const int ledPins[8] = {21, 23, 13, 12, 14, 27, 26, 25};
+const int ledPins[8] = {13,12,14,27,26,25,33,32};
 // Switch ภายนอก 8 ตัว
-const int swPins[8] = {15, 2, 4, 5, 18, 19, 22, 33};
+const int swPins[8] = {15, 23, 4, 5, 18, 19,21, 22};
 
 // ขาควบคุม TM1638 (ย้ายใหม่เพื่อไม่ให้ชนกับ Switch)
-const int STB = 32; 
+const int STB = 20; 
 const int CLK = 17;
 const int DIO = 16;
 
@@ -22,8 +22,8 @@ unsigned long lastDebounceTime = 0;
 WebServer server(80);
 
 // ข้อมูล Wi-Fi
-const char* ssid = "Somethinglikefatboi";
-const char* password = "00000000";
+const char* ssid = "RUTRADA";
+const char* password = "0894280008";
 
 // ==========================================
 // 2. ฟังก์ชันพื้นฐาน TM1638

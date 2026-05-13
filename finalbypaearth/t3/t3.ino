@@ -6,11 +6,11 @@
 // ==========================================
 // 1. ตั้งค่าเครือข่าย & Telegram
 // ==========================================
-const char* ssid = "Somethinglikefatboi";
-const char* password = "00000000";
+const char* ssid = "RUTRADA";
+const char* password = "0894280008";
 
-String BOT_TOKEN = "8716145917:AAGv1CDeIRnGQ1tIp4ZL-SPqhf9vNzexTls";
-String CHAT_ID = "6912565490";
+String BOT_TOKEN = "8659756474:AAGk3ZO2ZQnr65xX1cFaSyJEJmv0hFicv9Y";
+String CHAT_ID = "6545843941";
 
 WebServer server(80);
 
