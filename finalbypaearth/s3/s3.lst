@@ -1,0 +1,398 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	C:\Users\perth\Documents\asm\labtest\s3.asm
+	Object File:	C:\Users\perth\Documents\asm\labtest\s3.hex
+	List File:	C:\Users\perth\Documents\asm\labtest\s3.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				; =========================================================
+    2:				; LAB: 8x8 Dot-Matrix with MAX7219 & Switch Inputs
+    3:				; =========================================================
+    4:
+    5:				; ??????????? MAX7219 (Output)
+    6:		B	 90	DIN     BIT P1.0
+    7:		B	 91	CS      BIT P1.1
+    8:		B	 92	CLK     BIT P1.2
+    9:
+   10:				; ??????????? Switch (Input) - Active Low (?? = 0)
+   11:		B	 B0	SW0     BIT P3.0      ; ?????????? 0
+   12:		B	 B1	SW1     BIT P3.1      ; ?????????? 1
+   13:		B	 B2	SW2     BIT P3.2      ; ?????????? 2
+   14:		B	 B3	SW3     BIT P3.3      ; ?????????? 3
+   15:
+   16:				; =========================================================
+   17:		N      0000	        ORG 0000H
+   18:	  0000	02 00 30	        LJMP MAIN
+   19:
+   20:		N      0030	        ORG 0030H
+   21:	  0030			MAIN:
+   22:				        ; 1. ???????????? Initialize MAX7219
+   23:	  0030	12 00 A3	        LCALL INIT_MAX7219
+   24:
+   25:				        ; 2. (Step 1) ??????????????????-0 ???????????????
+   26:	  0033	7F 00		        MOV R7, #00H          ; R7 ???????????????????????? (??????????? 0)
+   27:	  0035	12 00 7C	        LCALL UPDATE_FACE
+   28:
+   29:	  0038			MAIN_LOOP:
+   30:				        ; =================================================
+   31:				        ; (Step 2) ????????????????????????????????
+   32:				        ; =================================================
+   33:
+   34:	  0038			CHK_SW0:
+   35:	  0038	20 B0 0D	        JB SW0, CHK_SW1       ; ??????????? SW0 (?????? 1) ????????????? SW1
+   36:	  003B	EF		        MOV A, R7
+   37:	  003C	B4 00 02	        CJNE A, #00H, CHANGE_0 ; ????? ????????????????????? 0 ??????????????????
+   38:	  003F	80 07		        SJMP CHK_SW1          ; ????? ??????????????????? 0 ???????? ????????????? (???????)
+   39:	  0041			CHANGE_0:
+   40:	  0041	7F 00		        MOV R7, #00H          ; ??????????????????? 0
+   41:	  0043	12 00 7C	        LCALL UPDATE_FACE
+   42:	  0046	80 00		        SJMP CHK_SW1
+   43:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0048			CHK_SW1:
+   45:	  0048	20 B1 0D	        JB SW1, CHK_SW2       ; ??????????? SW1 ????????????? SW2
+   46:	  004B	EF		        MOV A, R7
+   47:	  004C	B4 01 02	        CJNE A, #01H, CHANGE_1
+   48:	  004F	80 07		        SJMP CHK_SW2
+   49:	  0051			CHANGE_1:
+   50:	  0051	7F 01		        MOV R7, #01H          ; ??????????????????? 1
+   51:	  0053	12 00 7C	        LCALL UPDATE_FACE
+   52:	  0056	80 00		        SJMP CHK_SW2
+   53:
+   54:	  0058			CHK_SW2:
+   55:	  0058	20 B2 0D	        JB SW2, CHK_SW3       ; ??????????? SW2 ????????????? SW3
+   56:	  005B	EF		        MOV A, R7
+   57:	  005C	B4 02 02	        CJNE A, #02H, CHANGE_2
+   58:	  005F	80 07		        SJMP CHK_SW3
+   59:	  0061			CHANGE_2:
+   60:	  0061	7F 02		        MOV R7, #02H          ; ??????????????????? 2
+   61:	  0063	12 00 7C	        LCALL UPDATE_FACE
+   62:	  0066	80 00		        SJMP CHK_SW3
+   63:
+   64:	  0068			CHK_SW3:
+   65:	  0068	20 B3 0B	        JB SW3, MAIN_LOOP_END ; ??????????? SW3 ??????????????????
+   66:	  006B	EF		        MOV A, R7
+   67:	  006C	B4 03 02	        CJNE A, #03H, CHANGE_3
+   68:	  006F	80 05		        SJMP MAIN_LOOP_END
+   69:	  0071			CHANGE_3:
+   70:	  0071	7F 03		        MOV R7, #03H          ; ??????????????????? 3
+   71:	  0073	12 00 7C	        LCALL UPDATE_FACE
+   72:
+   73:	  0076			MAIN_LOOP_END:
+   74:				        ; ?????????????????????????????????? Switch Bouncing (??????????)
+   75:	  0076	12 00 D9	        LCALL DELAY_DEBOUNCE
+   76:	  0079	02 00 38	        LJMP MAIN_LOOP        ; ???????????????????????????
+   77:
+   78:
+   79:				; =========================================================
+   80:				; ???????????????????????????????????????????
+   81:				; =========================================================
+   82:	  007C			UPDATE_FACE:
+   83:				        ; ????? Offset ??????? (R7 * 8)
+   84:	  007C	75 F0 08	        MOV B, #08H
+   85:	  007F	EF		        MOV A, R7
+   86:	  0080	A4		        MUL AB                ; A = Low byte, B = High byte
+   87:
+   88:	  0081	90 00 E2	        MOV DPTR, #FACE_DATA
+   89:	  0084	FC		        MOV R4, A             ; ???? Low byte ????? R4
+   90:
+   91:	  0085	E5 F0		        MOV A, B
+   92:	  0087	FD		        MOV R5, A             ; ???? High byte ????? R5
+   93:
+   94:				        ; ??? Offset ??????? DPTR
+   95:	  0088	E5 82		        MOV A, DPL
+   96:	  008A	2C		        ADD A, R4
+   97:	  008B	F5 82		        MOV DPL, A
+   98:
+   99:	  008D	E5 83		        MOV A, DPH
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+  100:	  008F	3D		        ADDC A, R5
+  101:	  0090	F5 83		        MOV DPH, A
+  102:
+  103:	  0092	7E 01		        MOV R6, #01H          ; ???????? Address ??? MAX7219 ?????? 1
+  104:	  0094			UF_LOOP:
+  105:	  0094	EE		        MOV A, R6
+  106:	  0095	FA		        MOV R2, A             ; ?? Address ?????? R2
+  107:
+  108:	  0096	E4		        CLR A
+  109:	  0097	93		        MOVC A, @A+DPTR       ; ???????????????????????
+  110:	  0098	FB		        MOV R3, A             ; ??????????? R3
+  111:
+  112:	  0099	12 00 C0	        LCALL SEND_SPI        ; ????????? Address+Data ???? IC MAX7219
+  113:
+  114:	  009C	A3		        INC DPTR
+  115:	  009D	0E		        INC R6
+  116:	  009E	EE		        MOV A, R6
+  117:	  009F	B4 09 F2	        CJNE A, #09H, UF_LOOP ; ?????????? 8 ???
+  118:	  00A2	22		        RET
+  119:
+  120:
+  121:				; =========================================================
+  122:				; ?????????????? MAX7219 (SPI Bit-Banging)
+  123:				; =========================================================
+  124:	  00A3			INIT_MAX7219:
+  125:	  00A3	7A 0B		        MOV R2, #0BH          ; Scan Limit (??? 8 ???)
+  126:	  00A5	7B 07		        MOV R3, #07H
+  127:	  00A7	12 00 C0	        LCALL SEND_SPI
+  128:
+  129:	  00AA	7A 09		        MOV R2, #09H          ; Decode Mode (??????????)
+  130:	  00AC	7B 00		        MOV R3, #00H
+  131:	  00AE	12 00 C0	        LCALL SEND_SPI
+  132:
+  133:	  00B1	7A 0A		        MOV R2, #0AH          ; Intensity (????????????????)
+  134:	  00B3	7B 07		        MOV R3, #07H
+  135:	  00B5	12 00 C0	        LCALL SEND_SPI
+  136:
+  137:	  00B8	7A 0C		        MOV R2, #0CH          ; Shutdown Reg (?????????????)
+  138:	  00BA	7B 01		        MOV R3, #01H
+  139:	  00BC	12 00 C0	        LCALL SEND_SPI
+  140:	  00BF	22		        RET
+  141:
+  142:	  00C0			SEND_SPI:
+  143:	  00C0	C2 91		        CLR CS
+  144:	  00C2	EA		        MOV A, R2
+  145:	  00C3	12 00 CD	        LCALL SHIFT_OUT
+  146:	  00C6	EB		        MOV A, R3
+  147:	  00C7	12 00 CD	        LCALL SHIFT_OUT
+  148:	  00CA	D2 91		        SETB CS
+  149:	  00CC	22		        RET
+  150:
+  151:	  00CD			SHIFT_OUT:
+  152:	  00CD	7C 08		        MOV R4, #08H
+  153:	  00CF			SO_LOOP:
+  154:	  00CF	33		        RLC A
+  155:	  00D0	92 90		        MOV DIN, C
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+ Line  I  Addr  Code            Source
+
+  156:	  00D2	D2 92		        SETB CLK
+  157:	  00D4	C2 92		        CLR CLK
+  158:	  00D6	DC F7		        DJNZ R4, SO_LOOP
+  159:	  00D8	22		        RET
+  160:
+  161:
+  162:				; =========================================================
+  163:				; ????????????????? (Debounce)
+  164:				; =========================================================
+  165:	  00D9			DELAY_DEBOUNCE:
+  166:	  00D9	7C C8		        MOV R4, #200
+  167:	  00DB	7D 64		DLY1:   MOV R5, #100
+  168:	  00DD	DD FE		DLY2:   DJNZ R5, DLY2
+  169:	  00DF	DC FA		        DJNZ R4, DLY1
+  170:	  00E1	22		        RET
+  171:
+  172:
+  173:				; =========================================================
+  174:				; ????????????????? (Look-up Tables)
+  175:				; =========================================================
+  176:				; =========================================================
+  177:				; ???????????????????? Binary (????????? SW1 - SW4)
+  178:				; =========================================================
+  179:	  00E2			FACE_DATA:
+  180:				        ; --- SW1 ---
+  181:	  00E2	00		        DB 00000000B
+  182:	  00E3	3C		        DB 00111100B
+  183:	  00E4	42		        DB 01000010B
+  184:	  00E5	5A		        DB 01011010B
+  185:	  00E6	66		        DB 01100110B
+  186:	  00E7	5A		        DB 01011010B
+  187:	  00E8	42		        DB 01000010B
+  188:	  00E9	3C		        DB 00111100B
+  189:
+  190:				        ; --- SW2 ---
+  191:	  00EA	3C		        DB 00111100B
+  192:	  00EB	42		        DB 01000010B
+  193:	  00EC	7E		        DB 01111110B
+  194:	  00ED	5A		        DB 01011010B
+  195:	  00EE	42		        DB 01000010B
+  196:	  00EF	42		        DB 01000010B
+  197:	  00F0	7E		        DB 01111110B
+  198:	  00F1	00		        DB 00000000B
+  199:
+  200:				        ; --- SW3 ---
+  201:	  00F2	06		        DB 00000110B
+  202:	  00F3	05		        DB 00000101B
+  203:	  00F4	7F		        DB 01111111B
+  204:	  00F5	FE		        DB 11111110B
+  205:	  00F6	7E		        DB 01111110B
+  206:	  00F7	24		        DB 00100100B
+  207:	  00F8	24		        DB 00100100B
+  208:	  00F9	00		        DB 00000000B
+  209:
+  210:				        ; --- SW4 ---
+  211:	  00FA	00		        DB 00000000B
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+ Line  I  Addr  Code            Source
+
+  212:	  00FB	18		        DB 00011000B
+  213:	  00FC	7E		        DB 01111110B
+  214:	  00FD	99		        DB 10011001B
+  215:	  00FE	18		        DB 00011000B
+  216:	  00FF	18		        DB 00011000B
+  217:	  0100	18		        DB 00011000B
+  218:	  0101	18		        DB 00011000B
+  219:
+  220:				        END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 6
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CHANGE_0			  CODE	    0041	  39
+CHANGE_1			  CODE	    0051	  49
+CHANGE_2			  CODE	    0061	  59
+CHANGE_3			  CODE	    0071	  69
+CHK_SW0				  CODE	    0038	  34
+CHK_SW1				  CODE	    0048	  44
+CHK_SW2				  CODE	    0058	  54
+CHK_SW3				  CODE	    0068	  64
+CLK				  BIT	      92	   8
+CS				  BIT	      91	   7
+CY				  BIT	      D7
+DELAY_DEBOUNCE			  CODE	    00D9	 165
+DIN				  BIT	      90	   6
+DLY1				  CODE	    00DB	 167
+DLY2				  CODE	    00DD	 168
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+FACE_DATA			  CODE	    00E2	 179
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INIT_MAX7219			  CODE	    00A3	 124
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+MAIN				  CODE	    0030	  21
+MAIN_LOOP			  CODE	    0038	  29
+MAIN_LOOP_END			  CODE	    0076	  73
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 7
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SEND_SPI			  CODE	    00C0	 142
+SHIFT_OUT			  CODE	    00CD	 151
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SO_LOOP				  CODE	    00CF	 153
+SP				  DATA	      81
+SW0				  BIT	      B0	  11
+SW1				  BIT	      B1	  12
+SW2				  BIT	      B2	  13
+SW3				  BIT	      B3	  14
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+UF_LOOP				  CODE	    0094	 104
+UPDATE_FACE			  CODE	    007C	  82
+WR				  BIT	      B6

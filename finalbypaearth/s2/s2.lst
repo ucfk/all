@@ -1,0 +1,391 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	C:\Users\perth\Documents\asm\labtest\s2.asm
+	Object File:	C:\Users\perth\Documents\asm\labtest\s2.hex
+	List File:	C:\Users\perth\Documents\asm\labtest\s2.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				; =========================================================
+    2:				; ??????????? MAX7219
+    3:		B	 90	DIN     BIT P1.0
+    4:		B	 91	CS      BIT P1.1
+    5:		B	 92	CLK     BIT P1.2
+    6:				; ??????????? 7-Segment (Common Anode) ??????? P2
+    7:				; =========================================================
+    8:
+    9:		N      0000	        ORG 0000H
+   10:	  0000	02 00 30	        LJMP MAIN
+   11:
+   12:		N      0030	        ORG 0030H
+   13:	  0030			MAIN:
+   14:				        ; ??????? Timer 1 ?????? Serial (Baud 9600 @11.0592 MHz)
+   15:	  0030	75 89 20	        MOV TMOD, #20H
+   16:	  0033	75 8D FD	        MOV TH1, #0FDH
+   17:	  0036	75 98 50	        MOV SCON, #50H
+   18:	  0039	D2 8E		        SETB TR1
+   19:
+   20:	  003B	12 00 8F	        LCALL INIT_MAX7219
+   21:	  003E	75 A0 FF	        MOV P2, #0FFH         ; ?????????? 7-Segment (??????)
+   22:
+   23:	  0041			WAIT_RX:
+   24:	  0041	30 98 FD	        JNB RI, WAIT_RX
+   25:	  0044	C2 98		        CLR RI
+   26:	  0046	E5 99		        MOV A, SBUF
+   27:
+   28:				        ; =================================================
+   29:				        ; ????????????????? ASCII ???? Hex (0-15) ?????? SUBB
+   30:				        ; =================================================
+   31:	  0048	F9		        MOV R1, A             ; ?????? A (ASCII) ????? R1
+   32:
+   33:				        ; ??????????? '0'-'9' (0x30 - 0x39) ????????
+   34:	  0049	C3		        CLR C
+   35:	  004A	94 30		        SUBB A, #30H
+   36:	  004C	40 3F		        JC INVALID_RX         ; ??????????? '0' ???????
+   37:
+   38:	  004E	E9		        MOV A, R1
+   39:	  004F	C3		        CLR C
+   40:	  0050	94 3A		        SUBB A, #3AH          ; '9' + 1
+   41:	  0052	40 1A		        JC IS_DIGIT           ; ??????????? 0x3A ??????????? 0-9
+   42:
+   43:				        ; ??????????? 'A'-'F' (0x41 - 0x46) ????????
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0054	E9		        MOV A, R1
+   45:	  0055	C3		        CLR C
+   46:	  0056	94 41		        SUBB A, #41H
+   47:	  0058	40 33		        JC INVALID_RX         ; ?????????????? '9' ??? 'A' ???????
+   48:
+   49:	  005A	E9		        MOV A, R1
+   50:	  005B	C3		        CLR C
+   51:	  005C	94 47		        SUBB A, #47H          ; 'F' + 1
+   52:	  005E	40 14		        JC IS_UPPER_HEX       ; ??????????? 0x47 ??????????? A-F
+   53:
+   54:				        ; ??????????? 'a'-'f' (0x61 - 0x66) ????????
+   55:	  0060	E9		        MOV A, R1
+   56:	  0061	C3		        CLR C
+   57:	  0062	94 61		        SUBB A, #61H
+   58:	  0064	40 27		        JC INVALID_RX         ; ?????????????? 'F' ??? 'a' ???????
+   59:
+   60:	  0066	E9		        MOV A, R1
+   61:	  0067	C3		        CLR C
+   62:	  0068	94 67		        SUBB A, #67H          ; 'f' + 1
+   63:	  006A	40 10		        JC IS_LOWER_HEX       ; ??????????? 0x67 ??????????? a-f
+   64:
+   65:	  006C	80 1F		        SJMP INVALID_RX       ; ?????????????????????? ???????
+   66:
+   67:	  006E			IS_DIGIT:
+   68:	  006E	E9		        MOV A, R1
+   69:	  006F	C3		        CLR C
+   70:	  0070	94 30		        SUBB A, #30H          ; ???? '0'-'9' ???? 0-9
+   71:	  0072	80 0E		        SJMP PROCESS_DISPLAY
+   72:
+   73:	  0074			IS_UPPER_HEX:
+   74:	  0074	E9		        MOV A, R1
+   75:	  0075	C3		        CLR C
+   76:	  0076	94 41		        SUBB A, #41H          ; ???? 'A'-'F' ???? 10-15
+   77:	  0078	24 0A		        ADD A, #0AH
+   78:	  007A	80 06		        SJMP PROCESS_DISPLAY
+   79:
+   80:	  007C			IS_LOWER_HEX:
+   81:	  007C	E9		        MOV A, R1
+   82:	  007D	C3		        CLR C
+   83:	  007E	94 61		        SUBB A, #61H          ; ???? 'a'-'f' ???? 10-15
+   84:	  0080	24 0A		        ADD A, #0AH
+   85:
+   86:	  0082			PROCESS_DISPLAY:
+   87:	  0082	F8		        MOV R0, A             ; ?????? Hex 0-15 ????? R0
+   88:
+   89:				        ; 1. ????????? 7-Segment
+   90:	  0083	90 00 EA	        MOV DPTR, #SEG_CA
+   91:	  0086	93		        MOVC A, @A+DPTR
+   92:	  0087	F5 A0		        MOV P2, A
+   93:
+   94:				        ; 2. ????????? Dot-matrix
+   95:	  0089	E8		        MOV A, R0
+   96:	  008A	12 00 C5	        LCALL UPDATE_MATRIX
+   97:
+   98:	  008D			INVALID_RX:
+   99:	  008D	80 B2		        SJMP WAIT_RX          ; ??????????????????????
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+  100:
+  101:
+  102:				; =========================================================
+  103:				; ?????????????? MAX7219 (SPI Bit-Banging)
+  104:				; =========================================================
+  105:	  008F			INIT_MAX7219:
+  106:	  008F	7A 0B		        MOV R2, #0BH          ; Scan Limit
+  107:	  0091	7B 07		        MOV R3, #07H
+  108:	  0093	12 00 AC	        LCALL SEND_SPI
+  109:
+  110:	  0096	7A 09		        MOV R2, #09H          ; Decode Mode = 0
+  111:	  0098	7B 00		        MOV R3, #00H
+  112:	  009A	12 00 AC	        LCALL SEND_SPI
+  113:
+  114:	  009D	7A 0A		        MOV R2, #0AH          ; Intensity
+  115:	  009F	7B 07		        MOV R3, #07H
+  116:	  00A1	12 00 AC	        LCALL SEND_SPI
+  117:
+  118:	  00A4	7A 0C		        MOV R2, #0CH          ; Shutdown Reg = Normal
+  119:	  00A6	7B 01		        MOV R3, #01H
+  120:	  00A8	12 00 AC	        LCALL SEND_SPI
+  121:	  00AB	22		        RET
+  122:
+  123:	  00AC			SEND_SPI:
+  124:	  00AC	C2 91		        CLR CS
+  125:	  00AE	EA		        MOV A, R2
+  126:	  00AF	12 00 B9	        LCALL SHIFT_OUT
+  127:	  00B2	EB		        MOV A, R3
+  128:	  00B3	12 00 B9	        LCALL SHIFT_OUT
+  129:	  00B6	D2 91		        SETB CS
+  130:	  00B8	22		        RET
+  131:
+  132:	  00B9			SHIFT_OUT:
+  133:	  00B9	7C 08		        MOV R4, #08H
+  134:	  00BB			SO_LOOP:
+  135:	  00BB	33		        RLC A
+  136:	  00BC	92 90		        MOV DIN, C
+  137:	  00BE	D2 92		        SETB CLK
+  138:	  00C0	C2 92		        CLR CLK
+  139:	  00C2	DC F7		        DJNZ R4, SO_LOOP
+  140:	  00C4	22		        RET
+  141:
+  142:
+  143:				; =========================================================
+  144:				; ??????????????????? 8x8 ?? MAX7219
+  145:				; =========================================================
+  146:	  00C5			UPDATE_MATRIX:
+  147:	  00C5	75 F0 08	        MOV B, #08H
+  148:	  00C8	A4		        MUL AB                ; A = Low byte (Offset), B = High byte
+  149:
+  150:	  00C9	90 00 FA	        MOV DPTR, #FONT_8X8
+  151:	  00CC	FC		        MOV R4, A             ; ???? Low byte ????? R4
+  152:	  00CD	AD F0		        MOV R5, B             ; ???? High byte ????? R5 (???????? Illegal Operand)
+  153:
+  154:				        ; ??? Offset ??????? Address ?????? DPTR
+  155:	  00CF	E5 82		        MOV A, DPL
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+ Line  I  Addr  Code            Source
+
+  156:	  00D1	2C		        ADD A, R4
+  157:	  00D2	F5 82		        MOV DPL, A
+  158:
+  159:	  00D4	E5 83		        MOV A, DPH
+  160:	  00D6	3D		        ADDC A, R5            ; ??? R5 ??? B ??????????????? 8051
+  161:	  00D7	F5 83		        MOV DPH, A
+  162:
+  163:	  00D9	7E 01		        MOV R6, #01H          ; ??????????? Address 1 ??? MAX7219
+  164:	  00DB			UM_LOOP:
+  165:	  00DB	EE		        MOV A, R6     ; ???? R6 ??????? A
+  166:	  00DC	FA			MOV R2, A     ; ??????? A ????? R2
+  167:	  00DD	E4		        CLR A
+  168:	  00DE	93		        MOVC A, @A+DPTR
+  169:	  00DF	FB		        MOV R3, A
+  170:
+  171:	  00E0	12 00 AC	        LCALL SEND_SPI        ; ????????????? MAX7219
+  172:
+  173:	  00E3	A3		        INC DPTR
+  174:	  00E4	0E		        INC R6
+  175:	  00E5	EE		        MOV A, R6
+  176:	  00E6	B4 09 F2	        CJNE A, #09H, UM_LOOP ; ?? 8 ???
+  177:	  00E9	22		        RET
+  178:
+  179:
+  180:				; =========================================================
+  181:				; ??????????? (Look-up Tables)
+  182:				; =========================================================
+  183:	  00EA			SEG_CA:
+  184:	  00EA	C0 F9 A4 B0	        DB 0C0H, 0F9H, 0A4H, 0B0H, 099H, 092H, 082H, 0F8H ; 0 - 7
+	  00EE	99 92 82 F8
+  185:	  00F2	80 90 88 83	        DB 080H, 090H, 088H, 083H, 0C6H, 0A1H, 086H, 08EH ; 8 - F
+	  00F6	C6 A1 86 8E
+  186:
+  187:	  00FA			FONT_8X8:
+  188:	  00FA	3C 42 42 42	        DB 03CH, 042H, 042H, 042H, 042H, 042H, 042H, 03CH ; 0
+	  00FE	42 42 42 3C
+  189:	  0102	08 18 28 08	        DB 008H, 018H, 028H, 008H, 008H, 008H, 008H, 03EH ; 1
+	  0106	08 08 08 3E
+  190:	  010A	3C 42 02 0C	        DB 03CH, 042H, 002H, 00CH, 010H, 020H, 040H, 07EH ; 2
+	  010E	10 20 40 7E
+  191:	  0112	3C 42 02 1C	        DB 03CH, 042H, 002H, 01CH, 002H, 002H, 042H, 03CH ; 3
+	  0116	02 02 42 3C
+  192:	  011A	0C 14 24 44	        DB 00CH, 014H, 024H, 044H, 07EH, 004H, 004H, 004H ; 4
+	  011E	7E 04 04 04
+  193:	  0122	7E 40 40 7C	        DB 07EH, 040H, 040H, 07CH, 002H, 002H, 042H, 03CH ; 5
+	  0126	02 02 42 3C
+  194:	  012A	3C 40 40 7C	        DB 03CH, 040H, 040H, 07CH, 042H, 042H, 042H, 03CH ; 6
+	  012E	42 42 42 3C
+  195:	  0132	7E 02 04 08	        DB 07EH, 002H, 004H, 008H, 010H, 020H, 020H, 020H ; 7
+	  0136	10 20 20 20
+  196:	  013A	3C 42 42 3C	        DB 03CH, 042H, 042H, 03CH, 042H, 042H, 042H, 03CH ; 8
+	  013E	42 42 42 3C
+  197:	  0142	3C 42 42 42	        DB 03CH, 042H, 042H, 042H, 03EH, 002H, 002H, 03CH ; 9
+	  0146	3E 02 02 3C
+  198:	  014A	18 24 42 42	        DB 018H, 024H, 042H, 042H, 07EH, 042H, 042H, 042H ; A
+	  014E	7E 42 42 42
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+ Line  I  Addr  Code            Source
+
+  199:	  0152	7C 42 42 7C	        DB 07CH, 042H, 042H, 07CH, 042H, 042H, 042H, 07CH ; B
+	  0156	42 42 42 7C
+  200:	  015A	3C 42 40 40	        DB 03CH, 042H, 040H, 040H, 040H, 040H, 042H, 03CH ; C
+	  015E	40 40 42 3C
+  201:	  0162	78 44 42 42	        DB 078H, 044H, 042H, 042H, 042H, 042H, 044H, 078H ; D
+	  0166	42 42 44 78
+  202:	  016A	7E 40 40 7C	        DB 07EH, 040H, 040H, 07CH, 040H, 040H, 040H, 07EH ; E
+	  016E	40 40 40 7E
+  203:	  0172	7E 40 40 7C	        DB 07EH, 040H, 040H, 07CH, 040H, 040H, 040H, 040H ; F
+	  0176	40 40 40 40
+  204:
+  205:				        END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 6
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CLK				  BIT	      92	   5
+CS				  BIT	      91	   4
+CY				  BIT	      D7
+DIN				  BIT	      90	   3
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+FONT_8X8			  CODE	    00FA	 187
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INIT_MAX7219			  CODE	    008F	 105
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+INVALID_RX			  CODE	    008D	  98
+IP				  DATA	      B8
+IS_DIGIT			  CODE	    006E	  67
+IS_LOWER_HEX			  CODE	    007C	  80
+IS_UPPER_HEX			  CODE	    0074	  73
+IT0				  BIT	      88
+IT1				  BIT	      8A
+MAIN				  CODE	    0030	  13
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PROCESS_DISPLAY			  CODE	    0082	  86
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 7
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SEG_CA				  CODE	    00EA	 183
+SEND_SPI			  CODE	    00AC	 123
+SHIFT_OUT			  CODE	    00B9	 132
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SO_LOOP				  CODE	    00BB	 134
+SP				  DATA	      81
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+UM_LOOP				  CODE	    00DB	 164
+UPDATE_MATRIX			  CODE	    00C5	 146
+WAIT_RX				  CODE	    0041	  23
+WR				  BIT	      B6
